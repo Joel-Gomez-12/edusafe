@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  /* EduSafe Design Tokens */
+
+  /* Primary — Azul cobalto institucional */
+  --color-primary: #1E3A5F;
+  --color-primary-dk: #0F2444;
+  --color-primary-lt: #C5D3E2;
+
+  /* Sage — Verde acento esperanzador */
+  --color-sage: #7BA098;
+  --color-sage-dk: #4F756B;
+  --color-sage-lt: #DCE7DE;
+
+  /* Cream — Fondos cálidos */
+  --color-cream: #F7F3ED;
+  --color-cream-lt: #FBF9F4;
+
+  /* Mostaza — CTAs secundarios / premium */
+  --color-mostaza: #C9A961;
+
+  /* Alumno — Violeta flujo estudiante */
+  --color-alumno: #6633CC;
+  --color-alumno-dk: #4D22AA;
+  --color-alumno-lt: #EDE8F8;
+
+  /* Mediador — Azul marino institucional */
+  --color-mediador: #1A2B5E;
+  --color-mediador-dk: #111E46;
+  --color-mediador-lt: #EBF0FA;
+
+  /* Director — Azul medianoche */
+  --color-director:    #0C1A2E;
+  --color-director-dk: #060F1C;
+  --color-director-lt: #E5ECF5;
+
+  /* Alertas de severidad */
+  --color-alerta-baja: #C9A961;
+  --color-alerta-media: #E67E22;
+  --color-alerta-alta: #E67E22;
+  --color-alerta-critica: #C0392B;
+
+  /* Texto */
+  --color-ink: #1A2332;
+  --color-ink-soft: #475569;
+  --color-muted: #8B95A5;
+  --color-hairline: #E2E5EA;
+
+  /* Tipografía */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: Calibri, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  color: var(--color-primary-dk);
+}
+
+p { margin: 0; }
+
+/* PWA safe area padding */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Micro-interactions */
+.transition-base {
+  transition: all 150ms ease-in-out;
+}
+
+/* Severity badges */
+.badge-baja    { background-color: var(--color-alerta-baja);    color: white; }
+.badge-media   { background-color: var(--color-alerta-media);   color: white; }
+.badge-alta    { background-color: var(--color-alerta-alta);    color: white; }
+.badge-critica { background-color: var(--color-alerta-critica); color: white; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
