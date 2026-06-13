@@ -26,11 +26,6 @@ function statusLabel(status: string) {
   return map[status] ?? { label: status.toUpperCase(), cls: 'bg-gray-100 text-gray-500' }
 }
 
-function severityDot(severity: string) {
-  if (severity === 'alta' || severity === 'critica') return 'bg-orange-500'
-  if (severity === 'media') return 'bg-yellow-500'
-  return 'bg-gray-400'
-}
 
 function timeAgo(isoDate: string): string {
   const diff = (Date.now() - new Date(isoDate).getTime()) / 1000
@@ -44,11 +39,13 @@ export default function AlumnoMisCasos() {
   const navigate = useNavigate()
   const [cases, setCases] = useState<StoredCase[]>([])
   const [emojiKey, setEmojiKey] = useState<string[]>([])
+  const [activeCaseCode, setActiveCaseCode] = useState<string>('')
   const [accessing, setAccessing] = useState(false)
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('edusafe_cases') ?? '[]') as StoredCase[]
     setCases(stored)
+    if (stored.length > 0) setActiveCaseCode(stored[0].case_code)
   }, [])
 
   function toggleEmoji(emoji: string) {
@@ -61,16 +58,18 @@ export default function AlumnoMisCasos() {
 
   async function openCase() {
     if (emojiKey.length !== 3) { toast.error('Selecciona 3 emojis'); return }
+    if (!activeCaseCode) { toast.error('Selecciona un caso primero'); return }
     setAccessing(true)
     try {
       const deviceToken = localStorage.getItem('edusafe_device_token') ?? ''
-      const res = await callEdgeFunction<{ case_id: string; case_code: string }>('chat-access', {
+      const res = await callEdgeFunction<{ report_id: string; session_token: string }>('chat-access', {
         body: {
+          case_code: activeCaseCode,
           device_token: deviceToken,
-          emoji_pattern: emojiKey.join(''),
+          emoji_pattern: emojiKey,
         },
       })
-      navigate(`/alumno/chat/${res.case_id}`)
+      navigate(`/alumno/chat/${res.report_id}`)
     } catch {
       toast.error('Llave incorrecta. Prueba de nuevo.')
     } finally {
@@ -101,8 +100,8 @@ export default function AlumnoMisCasos() {
                 <button
                   key={c.case_code}
                   onClick={() => {
+                    setActiveCaseCode(c.case_code)
                     setEmojiKey(c.emojis)
-                    // Prefill para que puedan abrir directamente
                   }}
                   className="bg-white rounded-2xl p-4 text-left shadow-sm active:scale-[0.98] transition-base"
                 >
