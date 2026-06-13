@@ -43,9 +43,7 @@ export async function callEdgeFunction<T>(
     reqHeaders['Authorization'] = `Bearer ${sessionToken}`
   } else {
     const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      reqHeaders['Authorization'] = `Bearer ${session.access_token}`
-    }
+    reqHeaders['Authorization'] = `Bearer ${session?.access_token ?? supabaseAnonKey}`
   }
 
   if (centroSlug) {

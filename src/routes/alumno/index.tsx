@@ -1,9 +1,16 @@
-import { useNavigate } from 'react-router'
+import { useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Phone, BookOpen } from 'lucide-react'
 
 export default function AlumnoHome() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const centroNombre = localStorage.getItem('edusafe_centro_nombre') ?? 'Tu centro educativo'
+
+  useEffect(() => {
+    const slug = searchParams.get('centro')
+    if (slug) localStorage.setItem('edusafe_centro_slug', slug)
+  }, [searchParams])
 
   return (
     <div className="flex flex-col min-h-svh bg-cream">
