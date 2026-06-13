@@ -38,8 +38,9 @@ import DirectorMoriarty  from '@/routes/director/moriarty'
 import DirectorPerfil    from '@/routes/director/perfil'
 
 // Auth
-import LoginPage    from '@/routes/auth/login'
-import AuthCallback from '@/routes/auth/callback'
+import LoginPage      from '@/routes/auth/login'
+import AuthCallback   from '@/routes/auth/callback'
+import OnboardingPage from '@/routes/auth/onboarding'
 
 // Verificación pública de actas
 import VerificarActa from '@/routes/verificar'
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/login"    element={<LoginPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/onboarding"    element={<OnboardingPage />} />
           <Route path="/verificar/:csv_code" element={<VerificarActa />} />
 
           {/* Flujo alumno — layout con bottom nav */}

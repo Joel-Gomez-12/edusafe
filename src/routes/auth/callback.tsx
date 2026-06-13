@@ -15,7 +15,7 @@ function decodeJwtClaims(token: string): Record<string, unknown> {
 function roleToPath(role: string | undefined): string {
   if (role === 'director') return '/director'
   if (role === 'mediador') return '/mediador'
-  return '/auth/login'
+  return '/onboarding'
 }
 
 export default function AuthCallback() {
