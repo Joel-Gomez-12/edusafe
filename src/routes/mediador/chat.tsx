@@ -75,7 +75,7 @@ export default function MediadorChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Suscripción realtime ───────────────────────────────────────────────────
+  // ── Suscripción realtime + polling de respaldo ────────────────────────────
 
   useEffect(() => {
     if (!caseId) return
@@ -90,12 +90,35 @@ export default function MediadorChat() {
             if (prev.some(x => x.id === m.id)) return prev
             return [...prev, { id: m.id, sender_type: m.sender_type, content: m.content_encrypted, created_at: m.created_at }]
           })
-          // Scroll al nuevo mensaje
           setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
         },
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
+  }, [caseId])
+
+  // Polling cada 10s como red de seguridad para mensajes del alumno
+  useEffect(() => {
+    if (!caseId) return
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('id, sender_type, content_encrypted, created_at')
+        .eq('report_id', caseId)
+        .order('created_at', { ascending: true })
+      if (!data) return
+      const fresh = data.map(m => ({
+        id:          m.id,
+        sender_type: m.sender_type as SenderType,
+        content:     m.content_encrypted,
+        created_at:  m.created_at,
+      }))
+      setMessages(prev => {
+        if (prev.length === fresh.length && prev.every((m, i) => m.id === fresh[i].id)) return prev
+        return fresh
+      })
+    }, 10_000)
+    return () => clearInterval(interval)
   }, [caseId])
 
   // ── loadData ───────────────────────────────────────────────────────────────
@@ -195,8 +218,8 @@ export default function MediadorChat() {
         setReport(r => r ? { ...r, status: 'en_investigacion' } : r)
       }
 
-      // El realtime añadirá el mensaje real; eliminar el temporal
-      setMessages(prev => prev.filter(m => m.id !== tempId))
+      // Recargar desde DB — reemplaza el mensaje temporal con el real
+      await fetchMessages()
     } catch {
       toast.error('No se pudo enviar el mensaje')
       setMessages(prev => prev.filter(m => m.id !== tempId))
