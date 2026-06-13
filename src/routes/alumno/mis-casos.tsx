@@ -62,13 +62,20 @@ export default function AlumnoMisCasos() {
     setAccessing(true)
     try {
       const deviceToken = localStorage.getItem('edusafe_device_token') ?? ''
-      const res = await callEdgeFunction<{ report_id: string; session_token: string }>('chat-access', {
+      const res = await callEdgeFunction<{ report_id: string; case_code: string }>('chat-access', {
         body: {
           case_code: activeCaseCode,
           device_token: deviceToken,
           emoji_pattern: emojiKey,
         },
       })
+      // Guardar credenciales para que AlumnoChat pueda verificar y enviar mensajes
+      localStorage.setItem('edusafe_active_chat', JSON.stringify({
+        report_id:    res.report_id,
+        case_code:    res.case_code,
+        emojis:       emojiKey,
+        device_token: deviceToken,
+      }))
       navigate(`/alumno/chat/${res.report_id}`)
     } catch {
       toast.error('Llave incorrecta. Prueba de nuevo.')
