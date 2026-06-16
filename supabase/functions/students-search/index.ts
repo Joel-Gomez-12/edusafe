@@ -5,12 +5,13 @@ Deno.serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
 
-  try {
-    const centroSlug = req.headers.get('X-Centro-Slug') ?? ''
-    const query = req.headers.get('X-Query') ?? ''
+  if (req.method !== 'POST') return errorResponse('Method not allowed', 405)
 
-    if (!centroSlug) return errorResponse('Falta X-Centro-Slug', 400)
-    if (query.length < 2) return jsonResponse({ students: [] })
+  try {
+    const { centro_slug: centroSlug, query } = await req.json()
+
+    if (!centroSlug) return errorResponse('Falta centro_slug', 400)
+    if (!query || query.length < 2) return jsonResponse({ students: [] })
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,

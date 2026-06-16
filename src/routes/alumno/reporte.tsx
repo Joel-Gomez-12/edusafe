@@ -179,9 +179,8 @@ export default function AlumnoReporte() {
     const centroSlug = centroSlugFromUrl
     try {
       const res = await callEdgeFunction<{ students: typeof searchResults }>('students-search', {
-        method: 'GET',
-        centroSlug,
-        headers: { 'X-Query': query },
+        method: 'POST',
+        body: { centro_slug: centroSlug, query },
       })
       setSearchResults(res.students ?? [])
     } catch {
