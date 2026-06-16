@@ -1,0 +1,261 @@
+{
+  "landing": {
+    "staff_access": "Acceso staff",
+    "hero_title": "Un espacio seguro para contar lo que pasa",
+    "hero_subtitle": "Tu voz importa. Nadie va a saber que eres tú.",
+    "student": "Soy estudiante",
+    "student_desc": "Reporta de forma anónima y segura",
+    "mediator": "Soy mediador",
+    "mediator_desc": "Accede a tu bandeja de casos",
+    "director": "Soy director/a",
+    "director_desc": "Panel de seguimiento del centro",
+    "already_open": "Ya tengo un caso abierto — volver al chat",
+    "footer": "EduSafe · Tecnología con alma · Datos protegidos bajo RGPD"
+  },
+  "nav": {
+    "home": "Inicio", "report": "Reportar", "my_cases": "Mis casos",
+    "resources": "Recursos", "help": "Ayuda"
+  },
+  "nav_mediador": {
+    "inbox": "Inbox", "cases": "Casos", "students": "Alumnos",
+    "reports": "Informes", "profile": "Perfil"
+  },
+  "nav_director": {
+    "dashboard": "Dashboard", "schools": "Centros", "alerts": "Alertas",
+    "moriarty": "Moriarty", "profile": "Perfil"
+  },
+  "alumno_home": {
+    "badge": "Espacio seguro y anónimo",
+    "title": "Tu voz importa.",
+    "subtitle": "Aquí nadie sabe quién eres.\nTu información va cifrada.",
+    "start_report": "Iniciar reporte",
+    "start_report_desc": "Crea tu llave + chat guiado · 3 min",
+    "follow_report": "Seguir mi reporte",
+    "follow_report_desc": "Ver respuesta del mediador",
+    "immediate_help": "¿Necesitas ayuda inmediata?",
+    "talk_now": "Hablar con un orientador ahora",
+    "talk_now_desc": "Llamada anónima · Lunes a viernes 8–20h",
+    "learn_more": "Saber más sobre acoso",
+    "learn_more_desc": "Qué es, cómo reconocerlo, dónde pedir ayuda"
+  },
+  "reporte": {
+    "bot_greeting": "Hola 👋 Soy el asistente de EduSafe.\nTodo lo que me cuentes está cifrado.",
+    "bot_what": "Para empezar, ¿qué ha pasado?",
+    "bot_who_affected": "¿A quién afecta principalmente?",
+    "bot_where": "¿Dónde ocurre normalmente?",
+    "bot_perpetrator": "¿Sabes quién es la persona que lo hace? Tranquilo — solo buscaremos por nombre y curso, sin fotos.",
+    "bot_photos": "¿Tienes capturas o fotos que demuestren lo que pasa? Puedes adjuntar hasta 4 (se borran los metadatos automáticamente).",
+    "who_me": "A mí", "who_friend": "A un amigo/a", "who_other": "A otra persona",
+    "search_placeholder": "Buscar por nombre o curso...",
+    "skip": "No sé / prefiero no decirlo", "continue": "Continuar →",
+    "add_photos": "Añadir fotos", "send_report": "Enviar reporte", "sending": "Enviando...",
+    "verify_badge": "Verificando…", "authentic": "Auténtica",
+    "possible_ai": "Posible IA", "undetermined": "No determinable",
+    "zone_patio": "Patio", "zone_class": "Clase", "zone_bathroom": "Baños",
+    "zone_cafeteria": "Comedor", "zone_online": "Online", "zone_other": "Otro",
+    "error_describe": "Describe qué ha pasado"
+  },
+  "llave": {
+    "created": "Caso {{code}} creado ✓",
+    "title": "Crea tu llave secreta",
+    "subtitle": "Elige 3 emojis en orden. Solo con esta llave podrás acceder a tu caso.",
+    "reset": "Reiniciar", "save": "Guardar llave ▶", "saving": "Guardando...",
+    "choose_3": "Elige exactamente 3 emojis",
+    "error_save": "Error al guardar la llave. Anota el código del caso y tus emojis."
+  },
+  "mis_casos": {
+    "title": "Tus casos", "subtitle": "Solo se ven en este dispositivo",
+    "section_access": "Acceder a un caso con código",
+    "intro_title": "Introduce tu llave",
+    "intro_subtitle": "Toca tus 3 emojis en el mismo orden que cuando creaste el reporte.",
+    "reset": "Reiniciar", "open_case": "Abrir caso",
+    "wrong_key": "Llave incorrecta. Prueba de nuevo.",
+    "select_first": "Selecciona un caso primero", "select_3": "Selecciona 3 emojis",
+    "empty": "Aún no tienes casos en este dispositivo",
+    "status_new": "NUEVO", "status_review": "EN REVISIÓN", "status_closed": "CERRADO",
+    "status_referred": "DERIVADO", "status_archived": "ARCHIVADO"
+  },
+  "chat": {
+    "title": "Chat con el mediador",
+    "privacy": "🔒 El mediador ve tu caso pero no sabe quién eres. Tu identidad está protegida.",
+    "empty": "Aún no hay mensajes.\nEl mediador responderá en menos de 24h.",
+    "placeholder": "Escribe aquí...",
+    "error_load": "No se pudo cargar el chat.", "error_send": "Error al enviar el mensaje"
+  },
+  "auth": {
+    "login_title": "Iniciar sesión",
+    "login_subtitle": "Te enviamos un enlace mágico a tu correo institucional.",
+    "email_label": "Email institucional", "email_placeholder": "tu@colegio.es",
+    "send_link": "Enviar enlace de acceso", "sending": "Enviando...",
+    "check_email": "Revisa tu email",
+    "check_email_desc": "Hemos enviado un enlace de acceso a {{email}}. El enlace expira en 15 minutos.",
+    "use_other": "Usar otro email", "access_label": "Acceso {{role}}"
+  },
+  "onboarding": {
+    "title": "Bienvenido/a",
+    "subtitle": "Es tu primera vez aquí. Completa estos datos para empezar.",
+    "name_label": "Tu nombre completo", "name_placeholder": "María García López",
+    "role_label": "Tu rol en el centro", "centro_label": "Tu centro educativo",
+    "centro_placeholder": "Selecciona tu centro...",
+    "submit": "Entrar a EduSafe →", "submitting": "Creando perfil...",
+    "success": "¡Perfil creado! Bienvenido/a a EduSafe."
+  },
+  "status": {
+    "nuevo": "Abierto", "asignado": "Asignado", "en_investigacion": "En investigación",
+    "resuelto": "Resuelto", "derivado": "Derivado", "archivado": "Archivado"
+  },
+  "severity": {
+    "critica": "CRÍTICO", "alta": "ALTO", "media": "MEDIO", "baja": "BAJO"
+  },
+  "category": {
+    "ciberacoso": "Online", "exclusion": "Social", "fisico": "Físico",
+    "verbal": "Verbal", "sexual": "Sexual", "otros": "Otros"
+  },
+  "time": {
+    "just_now": "ahora mismo", "minutes_ago": "hace {{n}} min",
+    "hours_ago": "hace {{n}}h", "yesterday": "ayer", "days_ago": "hace {{n}} días"
+  },
+  "mediador_inbox": {
+    "title": "Bandeja de entrada",
+    "subtitle": "Casos activos · ordenados por urgencia",
+    "empty_title": "Todo al día",
+    "empty_desc": "No hay casos activos asignados a ti.",
+    "ai_alert_title": "Alerta de reincidencia",
+    "ai_alert_desc": "{{name}} ({{curso}}) aparece en {{count}} casos como agresor",
+    "no_desc": "Sin descripción",
+    "messages": "{{n}} mensajes"
+  },
+  "mediador_casos": {
+    "title": "Todos los casos",
+    "subtitle_plural": "{{total}} casos · {{active}} activos · {{closed}} cerrados",
+    "filter_all": "Todos", "filter_active": "Activos", "filter_closed": "Cerrados",
+    "empty_all": "No hay casos registrados",
+    "empty_active": "No hay casos activos",
+    "empty_closed": "No hay casos cerrados",
+    "closed_on": "Cerrado {{date}}", "no_desc": "Sin descripción"
+  },
+  "mediador_caso": {
+    "anon_chat": "Chat anónimo",
+    "open_chat": "Abrir chat",
+    "close_case": "Cerrar caso",
+    "flag_crime": "Marcar como posible delito",
+    "unflag_crime": "Quitar marca de delito",
+    "previ_title": "Protocolo PREVI",
+    "previ_note": "Añadir nota...",
+    "evidence_title": "Evidencias verificadas",
+    "evidence_disclaimer": "Los badges de verificación son orientativos y no determinan la veracidad del reporte.",
+    "involved_title": "Partes implicadas",
+    "victim": "Víctima", "aggressor": "Agresor", "witness": "Testigo",
+    "close_modal_title": "Cerrar caso #{{code}}",
+    "close_modal_subtitle": "Añade tus conclusiones finales (opcional).",
+    "conclusions_placeholder": "Resumen de la investigación y resolución...",
+    "generate_acta": "Generar acta y cerrar",
+    "close_only": "Solo cerrar sin acta",
+    "generating": "Generando acta...",
+    "acta_success_title": "Acta generada",
+    "acta_success_desc": "Código de verificación:",
+    "download_pdf": "Descargar PDF",
+    "verify_link": "Verificar en línea",
+    "view_reports": "Ver en Informes →",
+    "close_success": "Caso cerrado correctamente",
+    "error_close": "Error al cerrar el caso"
+  },
+  "mediador_chat": {
+    "anonymous_chat": "Chat anónimo",
+    "anonymous_student": "Alumno/a anónimo/a",
+    "privacy_notice": "El alumno no sabe quién eres. Identidades protegidas.",
+    "closed_notice": "Este caso está cerrado. Solo lectura.",
+    "unassigned_notice": "Este caso no está asignado a ti.",
+    "claim_case": "Tomar caso →",
+    "locked_title": "Toma el caso para ver los mensajes",
+    "locked_desc": "El historial solo es visible para el mediador asignado",
+    "empty_chat": "El alumno aún no ha enviado mensajes.\nPuedes escribir primero para abrir el canal.",
+    "placeholder": "Escribe tu respuesta...",
+    "closed_placeholder": "Caso cerrado",
+    "unassigned_placeholder": "Toma el caso para chatear",
+    "student_label": "Alumno/a",
+    "error_send": "No se pudo enviar el mensaje",
+    "error_claim": "No se pudo tomar el caso. Comprueba los permisos."
+  },
+  "mediador_actas": {
+    "title": "Informes",
+    "subtitle": "Actas firmadas digitalmente con CSV",
+    "info_text": "Las actas se generan automáticamente al cerrar un caso y quedan listas para inspección educativa.",
+    "empty_title": "Sin actas generadas aún",
+    "empty_desc": "Se crean al cerrar un caso con el protocolo completo",
+    "pending_title": "Pendientes de cerrar",
+    "steps": "{{n}}/5 pasos del protocolo",
+    "continue": "Continuar",
+    "signed": "Firmada",
+    "closed_on": "{{date}} · CSV: {{code}} · Firmada"
+  },
+  "mediador_alumnos": {
+    "title": "Alumnos",
+    "subtitle": "Censo del centro",
+    "upload_csv": "Subir CSV",
+    "last_upload": "Última actualización: {{date}}",
+    "no_upload": "Sin datos cargados",
+    "search_placeholder": "Buscar alumno...",
+    "empty": "No hay alumnos registrados",
+    "upload_success": "CSV importado correctamente",
+    "upload_error": "Error al importar el CSV"
+  },
+  "mediador_perfil": {
+    "title": "Mi perfil",
+    "role": "Mediador/a",
+    "logout": "Cerrar sesión",
+    "logout_confirm": "¿Cerrar sesión?",
+    "zone_label": "Zona asignada"
+  },
+  "director_dashboard": {
+    "greeting": "Buenos días,",
+    "subtitle": "Resumen del centro",
+    "kpi_reports": "Reportes este mes",
+    "kpi_resolved": "Tasa resolución",
+    "kpi_avg_days": "Días promedio",
+    "kpi_recurrence": "Reincidentes",
+    "vs_last_month": "vs mes anterior",
+    "termometro_title": "Termómetro de convivencia",
+    "termometro_good": "Buena convivencia",
+    "termometro_medium": "Convivencia moderada",
+    "termometro_bad": "Convivencia deteriorada",
+    "critical_alerts": "Alertas críticas",
+    "no_alerts": "Sin alertas críticas",
+    "recent_cases": "Casos recientes",
+    "no_cases": "No hay casos este mes",
+    "heatmap_title": "Mapa de incidencias",
+    "chart_title": "Evolución mensual"
+  },
+  "director_alertas": {
+    "title": "Alertas",
+    "subtitle": "Casos que requieren atención",
+    "filter_all": "Todos", "filter_critical": "Críticos", "filter_open": "Abiertos",
+    "empty": "No hay alertas",
+    "open_case": "Ver caso"
+  },
+  "director_centros": {
+    "title": "Centros",
+    "subtitle": "Gestión de centros educativos",
+    "students": "{{n}} alumnos",
+    "last_upload": "CSV: {{date}}",
+    "no_upload": "Sin CSV"
+  },
+  "director_moriarty": {
+    "title": "Moriarty",
+    "subtitle": "Análisis de patrones",
+    "recurrence_title": "Reincidencia detectada",
+    "recurrence_desc": "Alumnos que aparecen en más de un caso",
+    "no_recurrence": "No se detecta reincidencia",
+    "cases_as_aggressor": "{{n}} casos como agresor"
+  },
+  "director_perfil": {
+    "title": "Mi perfil",
+    "role": "Director/a",
+    "logout": "Cerrar sesión"
+  },
+  "common": {
+    "back": "Volver", "cancel": "Cancelar", "save": "Guardar",
+    "loading": "Cargando...", "error": "Ha ocurrido un error",
+    "no_desc": "Sin descripción", "case": "Caso"
+  }
+}

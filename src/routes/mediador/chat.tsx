@@ -4,6 +4,7 @@ import { ArrowLeft, Send, Lock } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ export default function MediadorChat() {
   const { caseId } = useParams<{ caseId: string }>()
   const navigate   = useNavigate()
   const { user }   = useAuth()
+  const { t }      = useTranslation()
   const bottomRef  = useRef<HTMLDivElement>(null)
 
   const [report,      setReport]      = useState<ReportInfo | null>(null)
@@ -184,7 +186,7 @@ export default function MediadorChat() {
       await fetchMessages()
       toast.success('Caso asignado. Ahora puedes chatear.')
     } catch {
-      toast.error('No se pudo tomar el caso. Comprueba los permisos.')
+      toast.error(t('mediador_chat.error_claim'))
     } finally {
       setClaiming(false)
     }
@@ -221,7 +223,7 @@ export default function MediadorChat() {
       // Recargar desde DB — reemplaza el mensaje temporal con el real
       await fetchMessages()
     } catch {
-      toast.error('No se pudo enviar el mensaje')
+      toast.error(t('mediador_chat.error_send'))
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setInput(text)
     } finally {
@@ -258,8 +260,8 @@ export default function MediadorChat() {
           <p className="text-[10px] text-white/50 font-bold tracking-widest uppercase">
             #{report.case_code} · {CAT_LABEL[report.category ?? ''] ?? 'Caso'}
           </p>
-          <p className="text-white font-semibold text-sm leading-tight mt-0.5">Chat anónimo</p>
-          <p className="text-white/55 text-xs mt-0.5">Alumno/a anónimo/a</p>
+          <p className="text-white font-semibold text-sm leading-tight mt-0.5">{t('mediador_chat.anonymous_chat')}</p>
+          <p className="text-white/55 text-xs mt-0.5">{t('mediador_chat.anonymous_student')}</p>
         </div>
         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0 mt-1 ${pill.cls}`}>
           {pill.label}
@@ -270,14 +272,14 @@ export default function MediadorChat() {
       {!isAssigned && !isClosed && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-between gap-3">
           <p className="text-sm text-amber-700 flex-1 leading-snug">
-            Este caso no está asignado a ti.
+            {t('mediador_chat.unassigned_notice')}
           </p>
           <button
             onClick={claimCase}
             disabled={claiming}
             className="px-3.5 py-1.5 bg-amber-500 text-white text-sm font-semibold rounded-xl flex-shrink-0 disabled:opacity-50 active:scale-95 transition-base"
           >
-            {claiming ? '...' : 'Tomar caso →'}
+            {claiming ? '...' : t('mediador_chat.claim_case')}
           </button>
         </div>
       )}
@@ -285,7 +287,7 @@ export default function MediadorChat() {
       {/* ── Banner: caso cerrado ───────────────────────────────────────────── */}
       {isClosed && (
         <div className="bg-cream border-b border-hairline px-4 py-2.5 flex items-center gap-2">
-          <span className="text-xs text-muted">Este caso está cerrado. Solo lectura.</span>
+          <span className="text-xs text-muted">{t('mediador_chat.closed_notice')}</span>
         </div>
       )}
 
@@ -294,7 +296,7 @@ export default function MediadorChat() {
         <div className="px-4 py-2.5 bg-mediador/5 border-b border-hairline flex items-center gap-2">
           <Lock className="w-3 h-3 text-mediador flex-shrink-0" />
           <p className="text-xs text-mediador font-medium">
-            El alumno no sabe quién eres. Identidades protegidas.
+            {t('mediador_chat.privacy_notice')}
           </p>
         </div>
       )}
@@ -304,14 +306,14 @@ export default function MediadorChat() {
         {!isAssigned ? (
           <div className="text-center py-16">
             <p className="text-3xl mb-3">🔒</p>
-            <p className="text-sm font-medium text-ink">Toma el caso para ver los mensajes</p>
-            <p className="text-xs text-muted mt-1">El historial solo es visible para el mediador asignado</p>
+            <p className="text-sm font-medium text-ink">{t('mediador_chat.locked_title')}</p>
+            <p className="text-xs text-muted mt-1">{t('mediador_chat.locked_desc')}</p>
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-16 text-ink/30">
             <p className="text-3xl mb-3">💬</p>
             <p className="text-sm leading-snug">
-              El alumno aún no ha enviado mensajes.<br />Puedes escribir primero para abrir el canal.
+              {t('mediador_chat.empty_chat')}
             </p>
           </div>
         ) : (
@@ -367,9 +369,9 @@ export default function MediadorChat() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
           placeholder={
-            isClosed       ? 'Caso cerrado'                :
-            !isAssigned    ? 'Toma el caso para chatear'   :
-            'Escribe tu respuesta...'
+            isClosed       ? t('mediador_chat.closed_placeholder')      :
+            !isAssigned    ? t('mediador_chat.unassigned_placeholder')   :
+            t('mediador_chat.placeholder')
           }
           disabled={!isAssigned || isClosed}
           className="flex-1 bg-transparent text-sm focus:outline-none text-ink placeholder:text-ink/30 disabled:cursor-default"

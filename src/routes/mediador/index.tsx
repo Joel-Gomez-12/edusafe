@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Bell, Brain } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 type SeverityLevel = 'critica' | 'alta' | 'media' | 'baja'
 type ReportStatus = 'nuevo' | 'asignado' | 'en_investigacion' | 'resuelto' | 'derivado' | 'archivado'
@@ -27,46 +28,47 @@ interface AIAlert {
   count: number
 }
 
-const SEV: Record<SeverityLevel, { label: string; dot: string; bg: string; text: string }> = {
-  critica: { label: 'CRÍTICO', dot: 'bg-red-500',    bg: 'bg-red-50',    text: 'text-red-600'    },
-  alta:    { label: 'ALTO',    dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-600' },
-  media:   { label: 'MEDIO',   dot: 'bg-amber-400',  bg: 'bg-amber-50',  text: 'text-amber-600'  },
-  baja:    { label: 'BAJO',    dot: 'bg-green-500',  bg: 'bg-green-50',  text: 'text-green-600'  },
-}
-
-const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'Online',
-  exclusion:  'Social',
-  fisico:     'Físico',
-  verbal:     'Verbal',
-  sexual:     'Sexual',
-  otros:      'Otros',
-}
-
-const STATUS_DISPLAY: Record<ReportStatus, { label: string; cls: string }> = {
-  nuevo:            { label: 'Abierto',           cls: 'text-muted'       },
-  asignado:         { label: 'Asignado',           cls: 'text-primary'     },
-  en_investigacion: { label: 'En investigación',   cls: 'text-muted'       },
-  resuelto:         { label: 'Resuelto',           cls: 'text-green-600'   },
-  derivado:         { label: 'Derivado',           cls: 'text-orange-600'  },
-  archivado:        { label: 'Archivado',          cls: 'text-muted'       },
-}
-
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins  = Math.floor(diff / 60_000)
-  const hours = Math.floor(diff / 3_600_000)
-  const days  = Math.floor(diff / 86_400_000)
-  if (mins < 2)   return 'ahora mismo'
-  if (mins < 60)  return `hace ${mins} min`
-  if (hours < 24) return `hace ${hours}h`
-  if (days === 1) return 'ayer'
-  return `hace ${days} días`
-}
-
 export default function MediadorInbox() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useTranslation()
+
+  const SEV: Record<SeverityLevel, { label: string; dot: string; bg: string; text: string }> = {
+    critica: { label: t('severity.critica'), dot: 'bg-red-500',    bg: 'bg-red-50',    text: 'text-red-600'    },
+    alta:    { label: t('severity.alta'),    dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-600' },
+    media:   { label: t('severity.media'),   dot: 'bg-amber-400',  bg: 'bg-amber-50',  text: 'text-amber-600'  },
+    baja:    { label: t('severity.baja'),    dot: 'bg-green-500',  bg: 'bg-green-50',  text: 'text-green-600'  },
+  }
+
+  const CAT_LABEL: Record<string, string> = {
+    ciberacoso: t('category.ciberacoso'),
+    exclusion:  t('category.exclusion'),
+    fisico:     t('category.fisico'),
+    verbal:     t('category.verbal'),
+    sexual:     t('category.sexual'),
+    otros:      t('category.otros'),
+  }
+
+  const STATUS_DISPLAY: Record<ReportStatus, { label: string; cls: string }> = {
+    nuevo:            { label: t('status.nuevo'),            cls: 'text-muted'       },
+    asignado:         { label: t('status.asignado'),         cls: 'text-primary'     },
+    en_investigacion: { label: t('status.en_investigacion'), cls: 'text-muted'       },
+    resuelto:         { label: t('status.resuelto'),         cls: 'text-green-600'   },
+    derivado:         { label: t('status.derivado'),         cls: 'text-orange-600'  },
+    archivado:        { label: t('status.archivado'),        cls: 'text-muted'       },
+  }
+
+  function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins  = Math.floor(diff / 60_000)
+    const hours = Math.floor(diff / 3_600_000)
+    const days  = Math.floor(diff / 86_400_000)
+    if (mins < 2)   return t('time.just_now')
+    if (mins < 60)  return t('time.minutes_ago', { n: mins })
+    if (hours < 24) return t('time.hours_ago', { n: hours })
+    if (days === 1) return t('time.yesterday')
+    return t('time.days_ago', { n: days })
+  }
 
   const [mediadorName, setMediadorName] = useState('')
   const [reports, setReports]           = useState<Report[]>([])
@@ -158,7 +160,7 @@ export default function MediadorInbox() {
             <p className="text-[11px] font-semibold tracking-widest text-white/50 uppercase mb-1">
               Mediadora · {mediadorName || user?.email?.split('@')[0]}
             </p>
-            <h1 className="font-display text-3xl font-bold text-white leading-tight">Bandeja</h1>
+            <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_inbox.title')}</h1>
             <p className="text-sm text-white/60 mt-0.5">
               {activeCount} abierto{activeCount !== 1 ? 's' : ''} · {criticalCount} crítico{criticalCount !== 1 ? 's' : ''}
             </p>
@@ -204,8 +206,8 @@ export default function MediadorInbox() {
         ) : reports.length === 0 ? (
           <div className="text-center py-16 text-muted">
             <p className="text-4xl mb-2">✅</p>
-            <p className="text-sm font-medium text-ink">Sin casos activos</p>
-            <p className="text-xs mt-1">Todos los casos están resueltos</p>
+            <p className="text-sm font-medium text-ink">{t('mediador_inbox.empty_title')}</p>
+            <p className="text-xs mt-1">{t('mediador_inbox.empty_desc')}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -221,7 +223,7 @@ export default function MediadorInbox() {
                 ? report.description.length > 70
                   ? report.description.slice(0, 68) + '…'
                   : report.description
-                : 'Sin descripción'
+                : t('common.no_desc')
 
               return (
                 <button

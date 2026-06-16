@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ChevronRight, Check } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ const TENANT_TYPE_LABEL: Record<string, string> = {
 
 export default function DirectorPerfil() {
   const { user, signOut } = useAuth()
+  const { t } = useTranslation()
   const [profile, setProfile] = useState<DirectorProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -98,7 +100,7 @@ export default function DirectorPerfil() {
     <div className="flex flex-col min-h-svh">
       {/* ── Cabecera ────────────────────────────────────────────────────────── */}
       <div className="bg-director px-5 pt-12 pb-5">
-        <h1 className="font-display text-3xl font-bold text-white leading-tight">Perfil</h1>
+        <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('director_perfil.title')}</h1>
       </div>
 
       <div className="flex-1 bg-cream px-5 pt-5 pb-4 flex flex-col gap-5">
@@ -122,7 +124,7 @@ export default function DirectorPerfil() {
                   {profile?.full_name ?? user?.email?.split('@')[0] ?? '…'}
                 </p>
                 <p className="text-sm text-muted font-medium">
-                  Directora · {profile?.tenantType}
+                  {t('director_perfil.role')} · {profile?.tenantType}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
                   {profile?.centroCount ?? 0} centros
@@ -182,7 +184,7 @@ export default function DirectorPerfil() {
                 onClick={signOut}
                 className="w-full flex items-center px-4 py-4 text-left"
               >
-                <span className="text-sm font-medium text-red-500">Cerrar sesión</span>
+                <span className="text-sm font-medium text-red-500">{t('director_perfil.logout')}</span>
               </button>
             </div>
           </>

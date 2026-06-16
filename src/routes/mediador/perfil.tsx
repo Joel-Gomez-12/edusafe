@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 interface MediadorProfile {
   full_name:  string
@@ -20,6 +21,7 @@ function getInitials(name: string): string {
 
 export default function MediadorPerfil() {
   const { user, signOut } = useAuth()
+  const { t } = useTranslation()
   const [profile, setProfile] = useState<MediadorProfile | null>(null)
 
   useEffect(() => { loadProfile() }, [])
@@ -51,14 +53,14 @@ export default function MediadorPerfil() {
     { label: 'Notificaciones' },
     { label: 'Idioma', value: 'ES' },
     { label: 'Manual del mediador' },
-    { label: 'Cerrar sesión', action: signOut, danger: true },
+    { label: t('mediador_perfil.logout'), action: signOut, danger: true },
   ]
 
   return (
     <div className="flex flex-col min-h-svh">
       {/* Cabecera */}
       <div className="bg-mediador px-5 pt-12 pb-5">
-        <h1 className="font-display text-3xl font-bold text-white leading-tight">Perfil</h1>
+        <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_perfil.title')}</h1>
       </div>
 
       <div className="flex-1 bg-cream px-5 pt-5 pb-4 flex flex-col gap-5">
@@ -76,7 +78,7 @@ export default function MediadorPerfil() {
               {profile?.full_name ?? user?.email?.split('@')[0] ?? '…'}
             </p>
             <p className="text-sm text-sage-dk font-medium truncate">
-              Mediadora certificada
+              {t('mediador_perfil.role')}
             </p>
             {profile?.centro && (
               <p className="text-xs text-muted mt-0.5 truncate">{profile.centro}</p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { User } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ function ZoneCell({
 export default function DirectorDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [dirData,       setDirData]       = useState<DirData | null>(null)
   const [kpis,          setKpis]          = useState<KPIs | null>(null)
@@ -276,7 +278,7 @@ export default function DirectorDashboard() {
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Termómetro de convivencia</p>
+                  <p className="text-sm font-semibold text-ink">{t('director_dashboard.termometro_title')}</p>
                   <p className="text-xs text-muted mt-0.5">
                     Índice basado en {kpis?.totalMsg ?? 0} reportes este mes
                   </p>
@@ -304,7 +306,7 @@ export default function DirectorDashboard() {
               {/* Reportes */}
               <div className="bg-white rounded-2xl p-4 shadow-sm">
                 <p className="text-[10px] font-bold tracking-widest text-muted uppercase mb-2">
-                  Reportes
+                  {t('director_dashboard.kpi_reports')}
                 </p>
                 <p className="text-3xl font-bold font-display text-ink leading-none">
                   {kpis?.reportes ?? 0}
@@ -313,7 +315,7 @@ export default function DirectorDashboard() {
                   <p className={`text-xs font-semibold mt-1.5 ${
                     kpis.reportesPct > 0 ? 'text-orange-500' : 'text-sage-dk'
                   }`}>
-                    {kpis.reportesPct > 0 ? '↑' : '↓'} {Math.abs(kpis.reportesPct)}% vs {prevMonth}
+                    {kpis.reportesPct > 0 ? '↑' : '↓'} {Math.abs(kpis.reportesPct)}% {t('director_dashboard.vs_last_month')}
                   </p>
                 )}
               </div>
@@ -321,7 +323,7 @@ export default function DirectorDashboard() {
               {/* Resueltos */}
               <div className="bg-white rounded-2xl p-4 shadow-sm">
                 <p className="text-[10px] font-bold tracking-widest text-muted uppercase mb-2">
-                  Resueltos
+                  {t('director_dashboard.kpi_resolved')}
                 </p>
                 <p className="text-3xl font-bold font-display text-ink leading-none">
                   {kpis?.resueltos ?? 0}
@@ -332,7 +334,7 @@ export default function DirectorDashboard() {
               {/* Tiempo medio */}
               <div className="bg-white rounded-2xl p-4 shadow-sm">
                 <p className="text-[10px] font-bold tracking-widest text-muted uppercase mb-2">
-                  Tiempo medio
+                  {t('director_dashboard.kpi_avg_days')}
                 </p>
                 <p className="text-3xl font-bold font-display text-ink leading-none">
                   {kpis?.avgDays ?? 0}d
@@ -349,7 +351,7 @@ export default function DirectorDashboard() {
               {/* Reincidentes */}
               <div className="bg-white rounded-2xl p-4 shadow-sm">
                 <p className="text-[10px] font-bold tracking-widest text-muted uppercase mb-2">
-                  Reincidentes
+                  {t('director_dashboard.kpi_recurrence')}
                 </p>
                 <p className="text-3xl font-bold font-display text-ink leading-none">
                   {kpis?.reincidentes ?? 0}

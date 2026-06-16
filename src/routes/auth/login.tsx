@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Shield, Mail, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { t } = useTranslation()
   const role = searchParams.get('role') ?? 'mediador'
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -59,7 +61,7 @@ export default function LoginPage() {
           className="flex items-center gap-2 text-ink-soft hover:text-primary transition-base mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm">Volver</span>
+          <span className="text-sm">{t('common.back')}</span>
         </button>
 
         <div className="flex items-center gap-3 mb-6">
@@ -68,22 +70,22 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-display text-primary-dk leading-tight">EduSafe</h1>
-            <p className="text-xs text-muted">Acceso {roleLabel}</p>
+            <p className="text-xs text-muted">{t('auth.access_label', { role: roleLabel })}</p>
           </div>
         </div>
 
         {!sent ? (
           <form onSubmit={handleSendLink} className="flex flex-col gap-4">
             <div>
-              <h2 className="text-2xl font-display text-ink mb-1">Iniciar sesión</h2>
+              <h2 className="text-2xl font-display text-ink mb-1">{t('auth.login_title')}</h2>
               <p className="text-sm text-ink-soft">
-                Te enviamos un enlace mágico a tu correo institucional.
+                {t('auth.login_subtitle')}
               </p>
             </div>
 
             <div className="flex flex-col gap-1">
               <label htmlFor="email" className="text-sm font-medium text-ink">
-                Email institucional
+                {t('auth.email_label')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -92,7 +94,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@colegio.es"
+                  placeholder={t('auth.email_placeholder')}
                   required
                   className="w-full pl-9 pr-4 py-3 rounded-lg border border-hairline bg-cream-lt text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-base"
                 />
@@ -104,7 +106,7 @@ export default function LoginPage() {
               disabled={loading || !email.trim()}
               className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dk disabled:opacity-50 disabled:cursor-not-allowed transition-base"
             >
-              {loading ? 'Enviando...' : 'Enviar enlace de acceso'}
+              {loading ? t('auth.sending') : t('auth.send_link')}
             </button>
           </form>
         ) : (
@@ -113,17 +115,16 @@ export default function LoginPage() {
               <Mail className="w-8 h-8 text-sage-dk" />
             </div>
             <div>
-              <h2 className="text-xl font-display text-ink mb-2">Revisa tu email</h2>
+              <h2 className="text-xl font-display text-ink mb-2">{t('auth.check_email')}</h2>
               <p className="text-sm text-ink-soft">
-                Hemos enviado un enlace de acceso a <strong>{email}</strong>.
-                El enlace expira en 15 minutos.
+                {t('auth.check_email_desc', { email })}
               </p>
             </div>
             <button
               onClick={() => setSent(false)}
               className="text-sm text-primary underline underline-offset-2 hover:text-primary-dk transition-base"
             >
-              Usar otro email
+              {t('auth.use_other')}
             </button>
           </div>
         )}

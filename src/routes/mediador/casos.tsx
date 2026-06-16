@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { supabase } from '@/lib/edusafe/supabase'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,27 +24,6 @@ interface Report {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const SEV: Record<SeverityLevel, { label: string; dot: string; bg: string; text: string }> = {
-  critica: { label: 'CRÍTICO', dot: 'bg-red-500',    bg: 'bg-red-50',    text: 'text-red-600'    },
-  alta:    { label: 'ALTO',    dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-600' },
-  media:   { label: 'MEDIO',   dot: 'bg-amber-400',  bg: 'bg-amber-50',  text: 'text-amber-600'  },
-  baja:    { label: 'BAJO',    dot: 'bg-green-500',  bg: 'bg-green-50',  text: 'text-green-600'  },
-}
-
-const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'Online', exclusion: 'Social', fisico: 'Físico',
-  verbal: 'Verbal', sexual: 'Sexual', otros: 'Otros',
-}
-
-const STATUS_DISPLAY: Record<ReportStatus, { label: string; cls: string }> = {
-  nuevo:            { label: 'Abierto',           cls: 'text-muted'      },
-  asignado:         { label: 'Asignado',           cls: 'text-primary'    },
-  en_investigacion: { label: 'En investigación',   cls: 'text-primary'    },
-  resuelto:         { label: 'Resuelto',           cls: 'text-green-600'  },
-  derivado:         { label: 'Derivado',           cls: 'text-orange-600' },
-  archivado:        { label: 'Archivado',          cls: 'text-muted'      },
-}
-
 const ACTIVE_STATUSES:  ReportStatus[] = ['nuevo', 'asignado', 'en_investigacion']
 const CLOSED_STATUSES:  ReportStatus[] = ['resuelto', 'derivado', 'archivado']
 
@@ -51,22 +31,44 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function timeAgo(dateStr: string): string {
-  const diff  = Date.now() - new Date(dateStr).getTime()
-  const mins  = Math.floor(diff / 60_000)
-  const hours = Math.floor(diff / 3_600_000)
-  const days  = Math.floor(diff / 86_400_000)
-  if (mins  <  2) return 'ahora mismo'
-  if (mins  < 60) return `hace ${mins} min`
-  if (hours < 24) return `hace ${hours}h`
-  if (days  ===1) return 'ayer'
-  return `hace ${days} días`
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function MediadorCasos() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  const SEV: Record<SeverityLevel, { label: string; dot: string; bg: string; text: string }> = {
+    critica: { label: t('severity.critica'), dot: 'bg-red-500',    bg: 'bg-red-50',    text: 'text-red-600'    },
+    alta:    { label: t('severity.alta'),    dot: 'bg-orange-500', bg: 'bg-orange-50', text: 'text-orange-600' },
+    media:   { label: t('severity.media'),   dot: 'bg-amber-400',  bg: 'bg-amber-50',  text: 'text-amber-600'  },
+    baja:    { label: t('severity.baja'),    dot: 'bg-green-500',  bg: 'bg-green-50',  text: 'text-green-600'  },
+  }
+
+  const CAT_LABEL: Record<string, string> = {
+    ciberacoso: t('category.ciberacoso'), exclusion: t('category.exclusion'), fisico: t('category.fisico'),
+    verbal: t('category.verbal'), sexual: t('category.sexual'), otros: t('category.otros'),
+  }
+
+  const STATUS_DISPLAY: Record<ReportStatus, { label: string; cls: string }> = {
+    nuevo:            { label: t('status.nuevo'),            cls: 'text-muted'      },
+    asignado:         { label: t('status.asignado'),         cls: 'text-primary'    },
+    en_investigacion: { label: t('status.en_investigacion'), cls: 'text-primary'    },
+    resuelto:         { label: t('status.resuelto'),         cls: 'text-green-600'  },
+    derivado:         { label: t('status.derivado'),         cls: 'text-orange-600' },
+    archivado:        { label: t('status.archivado'),        cls: 'text-muted'      },
+  }
+
+  function timeAgo(dateStr: string): string {
+    const diff  = Date.now() - new Date(dateStr).getTime()
+    const mins  = Math.floor(diff / 60_000)
+    const hours = Math.floor(diff / 3_600_000)
+    const days  = Math.floor(diff / 86_400_000)
+    if (mins  <  2) return t('time.just_now')
+    if (mins  < 60) return t('time.minutes_ago', { n: mins })
+    if (hours < 24) return t('time.hours_ago', { n: hours })
+    if (days  ===1) return t('time.yesterday')
+    return t('time.days_ago', { n: days })
+  }
 
   const [all,     setAll]     = useState<Report[]>([])
   const [filter,  setFilter]  = useState<FilterKey>('todos')
@@ -97,9 +99,9 @@ export default function MediadorCasos() {
   const totalCerrados = all.filter(r => CLOSED_STATUSES.includes(r.status)).length
 
   const FILTERS: { key: FilterKey; label: string; count: number }[] = [
-    { key: 'todos',    label: 'Todos',    count: all.length      },
-    { key: 'activos',  label: 'Activos',  count: totalActivos    },
-    { key: 'cerrados', label: 'Cerrados', count: totalCerrados   },
+    { key: 'todos',    label: t('mediador_casos.filter_all'),    count: all.length      },
+    { key: 'activos',  label: t('mediador_casos.filter_active'), count: totalActivos    },
+    { key: 'cerrados', label: t('mediador_casos.filter_closed'), count: totalCerrados   },
   ]
 
   return (
@@ -107,7 +109,7 @@ export default function MediadorCasos() {
 
       {/* ── Cabecera ────────────────────────────────────────────────────────── */}
       <div className="bg-mediador px-5 pt-12 pb-5">
-        <h1 className="font-display text-3xl font-bold text-white leading-tight">Todos los casos</h1>
+        <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_casos.title')}</h1>
         <p className="text-sm text-white/60 mt-0.5">
           {all.length} caso{all.length !== 1 ? 's' : ''} · {totalActivos} activo{totalActivos !== 1 ? 's' : ''} · {totalCerrados} cerrado{totalCerrados !== 1 ? 's' : ''}
         </p>
@@ -148,10 +150,10 @@ export default function MediadorCasos() {
             </p>
             <p className="text-sm font-medium text-ink">
               {filter === 'cerrados'
-                ? 'No hay casos cerrados'
+                ? t('mediador_casos.empty_closed')
                 : filter === 'activos'
-                ? 'No hay casos activos'
-                : 'No hay casos registrados'}
+                ? t('mediador_casos.empty_active')
+                : t('mediador_casos.empty_all')}
             </p>
           </div>
         ) : (
@@ -169,7 +171,7 @@ export default function MediadorCasos() {
                 ? report.description.length > 70
                   ? report.description.slice(0, 68) + '…'
                   : report.description
-                : 'Sin descripción'
+                : t('mediador_casos.no_desc')
 
               return (
                 <button
@@ -212,7 +214,7 @@ export default function MediadorCasos() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted">
                       {isClosed && report.closed_at
-                        ? `Cerrado ${fmtDate(report.closed_at)}`
+                        ? t('mediador_casos.closed_on', { date: fmtDate(report.closed_at) })
                         : timeAgo(report.last_activity_at)}
                     </span>
                     {sev && <span className={`text-xs font-semibold ${st.cls}`}>{st.label}</span>}

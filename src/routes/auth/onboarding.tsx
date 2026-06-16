@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Shield } from 'lucide-react'
 import { supabase, callEdgeFunction } from '@/lib/edusafe/supabase'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 interface Centro {
   id:        string
@@ -12,6 +13,7 @@ interface Centro {
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [centros,   setCentros]   = useState<Centro[]>([])
   const [role,      setRole]      = useState<'mediador' | 'director'>('mediador')
@@ -42,7 +44,7 @@ export default function OnboardingPage() {
       const { data, error } = await supabase.auth.refreshSession()
       if (error || !data.session) throw new Error('No se pudo refrescar la sesión')
 
-      toast.success('¡Perfil creado! Bienvenido/a a EduSafe.')
+      toast.success(t('onboarding.success'))
       navigate(role === 'director' ? '/director' : '/mediador', { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al crear el perfil')
@@ -66,21 +68,21 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-display text-ink mb-1">Bienvenido/a</h2>
+        <h2 className="text-2xl font-display text-ink mb-1">{t('onboarding.title')}</h2>
         <p className="text-sm text-ink-soft mb-6">
-          Es tu primera vez aquí. Completa estos datos para empezar.
+          {t('onboarding.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
           {/* Nombre */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-ink">Tu nombre completo</label>
+            <label className="text-sm font-medium text-ink">{t('onboarding.name_label')}</label>
             <input
               type="text"
               value={fullName}
               onChange={e => setFullName(e.target.value)}
-              placeholder="María García López"
+              placeholder={t('onboarding.name_placeholder')}
               required
               className="w-full px-4 py-3 rounded-lg border border-hairline bg-cream-lt text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary transition-base"
             />
@@ -88,7 +90,7 @@ export default function OnboardingPage() {
 
           {/* Rol */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-ink">Tu rol en el centro</label>
+            <label className="text-sm font-medium text-ink">{t('onboarding.role_label')}</label>
             <div className="grid grid-cols-2 gap-2">
               {(['mediador', 'director'] as const).map(r => (
                 <button
@@ -109,7 +111,7 @@ export default function OnboardingPage() {
 
           {/* Centro */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-ink">Tu centro educativo</label>
+            <label className="text-sm font-medium text-ink">{t('onboarding.centro_label')}</label>
             {loadingC ? (
               <div className="h-11 rounded-lg border border-hairline bg-cream-lt flex items-center px-4">
                 <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -121,7 +123,7 @@ export default function OnboardingPage() {
                 required
                 className="w-full px-4 py-3 rounded-lg border border-hairline bg-cream-lt text-ink focus:outline-none focus:ring-2 focus:ring-primary transition-base"
               >
-                <option value="">Selecciona tu centro...</option>
+                <option value="">{t('onboarding.centro_placeholder')}</option>
                 {centros.map(c => (
                   <option key={c.id} value={c.id}>
                     {c.nombre}{c.municipio ? ` · ${c.municipio}` : ''}
@@ -136,7 +138,7 @@ export default function OnboardingPage() {
             disabled={loading || !fullName.trim() || !centroId}
             className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dk disabled:opacity-50 disabled:cursor-not-allowed transition-base"
           >
-            {loading ? 'Creando perfil...' : 'Entrar a EduSafe →'}
+            {loading ? t('onboarding.submitting') : t('onboarding.submit')}
           </button>
         </form>
       </div>

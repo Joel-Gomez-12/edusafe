@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AlertTriangle, Check } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,7 @@ function anonymize(fullName: string, grupo: string): string {
 
 export default function DirectorAlertas() {
   const { user } = useAuth()
+  const { t } = useTranslation()
 
   const [reincidentes, setReincidentes] = useState<Reincidente[]>([])
   const [slaItems,     setSlaItems]     = useState<SLAItem[]>([])
@@ -156,7 +158,7 @@ export default function DirectorAlertas() {
     <div className="flex flex-col min-h-svh">
       {/* ── Cabecera ────────────────────────────────────────────────────────── */}
       <div className="bg-director px-5 pt-12 pb-5">
-        <h1 className="font-display text-3xl font-bold text-white leading-tight">Alertas</h1>
+        <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('director_alertas.title')}</h1>
         <p className="text-sm text-white/55 mt-0.5 leading-snug">
           No verás el contenido de los chats.{' '}
           Solo lo que requiere tu atención.

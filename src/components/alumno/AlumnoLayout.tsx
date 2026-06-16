@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate, useSearchParams, useLocation } from 'react-router'
 import { Home, Megaphone, Lock, BookOpen, HelpCircle, X } from 'lucide-react'
-
-const NAV = [
-  { to: '/alumno',           label: 'Inicio',    Icon: Home,        end: true  },
-  { to: '/alumno/reporte',   label: 'Reportar',  Icon: Megaphone,   end: false },
-  { to: '/alumno/mis-casos', label: 'Mis casos', Icon: Lock,        end: false },
-  { to: '/alumno/recursos',  label: 'Recursos',  Icon: BookOpen,    end: false },
-  { to: '/alumno/ayuda',     label: 'Ayuda',     Icon: HelpCircle,  end: false },
-]
+import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 
 // ── Calculadora falsa ─────────────────────────────────────────────────────────
 
@@ -99,10 +93,19 @@ function FakeCalculator({ onClose }: { onClose: () => void }) {
 export default function AlumnoLayout() {
   const navigate    = useNavigate()
   const location    = useLocation()
+  const { t }       = useTranslation()
   const [searchParams] = useSearchParams()
   const [showCalc, setShowCalc] = useState(false)
 
   const isInicio = location.pathname === '/alumno' || location.pathname === '/alumno/'
+
+  const NAV = [
+    { to: '/alumno',           label: t('nav.home'),      Icon: Home,        end: true  },
+    { to: '/alumno/reporte',   label: t('nav.report'),    Icon: Megaphone,   end: false },
+    { to: '/alumno/mis-casos', label: t('nav.my_cases'),  Icon: Lock,        end: false },
+    { to: '/alumno/recursos',  label: t('nav.resources'), Icon: BookOpen,    end: false },
+    { to: '/alumno/ayuda',     label: t('nav.help'),      Icon: HelpCircle,  end: false },
+  ]
 
   useEffect(() => {
     const slug = searchParams.get('centro')
@@ -122,15 +125,20 @@ export default function AlumnoLayout() {
       {/* Calculadora falsa (modo camuflaje) */}
       {showCalc && <FakeCalculator onClose={() => setShowCalc(false)} />}
 
-      {/* FAB modo camuflaje — solo en Inicio */}
+      {/* Selector de idioma + FAB modo camuflaje — solo en Inicio */}
       {isInicio && !showCalc && (
-        <button
-          onClick={() => setShowCalc(true)}
-          aria-label="Modo camuflaje"
-          className="fixed bottom-24 right-4 z-50 w-12 h-12 bg-alerta-critica text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-base"
-        >
-          <X className="w-5 h-5" strokeWidth={3} />
-        </button>
+        <>
+          <div className="fixed bottom-24 right-20 z-50">
+            <LanguageSwitcher />
+          </div>
+          <button
+            onClick={() => setShowCalc(true)}
+            aria-label="Modo camuflaje"
+            className="fixed bottom-24 right-4 z-50 w-12 h-12 bg-alerta-critica text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-base"
+          >
+            <X className="w-5 h-5" strokeWidth={3} />
+          </button>
+        </>
       )}
 
       {/* Bottom navigation */}

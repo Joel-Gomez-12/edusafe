@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { Download, FileText, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 interface Acta {
   id: string
@@ -39,6 +40,7 @@ function shortCsv(code: string): string {
 
 export default function MediadorActas() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [actas,    setActas]    = useState<Acta[]>([])
   const [pending,  setPending]  = useState<PendingReport[]>([])
@@ -120,8 +122,8 @@ export default function MediadorActas() {
     <div className="flex flex-col min-h-svh">
       {/* Cabecera */}
       <div className="bg-mediador px-5 pt-12 pb-5">
-        <h1 className="font-display text-3xl font-bold text-white leading-tight">Informes</h1>
-        <p className="text-sm text-white/60 mt-0.5">Actas firmadas digitalmente con CSV</p>
+        <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_actas.title')}</h1>
+        <p className="text-sm text-white/60 mt-0.5">{t('mediador_actas.subtitle')}</p>
       </div>
 
       <div className="flex-1 bg-cream px-5 pt-5 pb-4 flex flex-col gap-5">
@@ -132,7 +134,7 @@ export default function MediadorActas() {
             <FileText className="w-4 h-4 text-mostaza" />
           </div>
           <p className="text-sm text-ink-soft leading-snug">
-            Las actas se generan automáticamente al cerrar un caso y quedan listas para inspección educativa.
+            {t('mediador_actas.info_text')}
           </p>
         </div>
 
@@ -144,8 +146,8 @@ export default function MediadorActas() {
         ) : actas.length === 0 ? (
           <div className="text-center py-6 text-muted">
             <p className="text-3xl mb-2">📄</p>
-            <p className="text-sm font-medium text-ink">Sin actas generadas aún</p>
-            <p className="text-xs mt-1">Se crean al cerrar un caso con el protocolo completo</p>
+            <p className="text-sm font-medium text-ink">{t('mediador_actas.empty_title')}</p>
+            <p className="text-xs mt-1">{t('mediador_actas.empty_desc')}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -197,7 +199,7 @@ export default function MediadorActas() {
         {!loading && pending.length > 0 && (
           <div>
             <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-              Pendientes de cerrar
+              {t('mediador_actas.pending_title')}
             </p>
             <div className="flex flex-col gap-3">
               {pending.map(r => {
@@ -212,13 +214,13 @@ export default function MediadorActas() {
                       #{r.case_code} · {title}
                     </p>
                     <p className="text-xs text-muted mb-3">
-                      {steps}/5 pasos del protocolo
+                      {t('mediador_actas.steps', { n: steps })}
                     </p>
                     <button
                       onClick={() => navigate(`/mediador/casos/${r.id}`)}
                       className="w-full py-2.5 rounded-xl border border-hairline text-sm font-semibold text-primary active:scale-[0.98] transition-base"
                     >
-                      Continuar
+                      {t('mediador_actas.continue')}
                     </button>
                   </div>
                 )
