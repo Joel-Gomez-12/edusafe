@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { X, Send, Paperclip, ArrowLeft, Search } from 'lucide-react'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
 import { toast } from 'sonner'
@@ -76,6 +76,8 @@ function userMsg(text: string): ChatMessage { return { id: botId(), role: 'user'
 
 export default function AlumnoReporte() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const centroSlugFromUrl = searchParams.get('centro') ?? localStorage.getItem('edusafe_centro_slug') ?? ''
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -174,7 +176,7 @@ export default function AlumnoReporte() {
 
   async function handleSearch(query: string) {
     if (query.length < 2) { setSearchResults([]); return }
-    const centroSlug = localStorage.getItem('edusafe_centro_slug') ?? ''
+    const centroSlug = centroSlugFromUrl
     try {
       const res = await callEdgeFunction<{ students: typeof searchResults }>('students-search', {
         method: 'GET',
@@ -253,7 +255,7 @@ export default function AlumnoReporte() {
       const deviceToken = crypto.randomUUID()
       localStorage.setItem('edusafe_device_token', deviceToken)
 
-      const centroSlug = localStorage.getItem('edusafe_centro_slug') ?? ''
+      const centroSlug = centroSlugFromUrl
       const res = await callEdgeFunction<{ case_code: string }>('reports-create', {
         centroSlug,
         body: {

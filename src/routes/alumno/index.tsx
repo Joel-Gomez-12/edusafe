@@ -7,10 +7,12 @@ export default function AlumnoHome() {
   const [searchParams] = useSearchParams()
   const centroNombre = localStorage.getItem('edusafe_centro_nombre') ?? 'Tu centro educativo'
 
+  const centroSlug = searchParams.get('centro') ?? localStorage.getItem('edusafe_centro_slug') ?? ''
+  const centroParam = centroSlug ? `?centro=${centroSlug}` : ''
+
   useEffect(() => {
-    const slug = searchParams.get('centro')
-    if (slug) localStorage.setItem('edusafe_centro_slug', slug)
-  }, [searchParams])
+    if (centroSlug) localStorage.setItem('edusafe_centro_slug', centroSlug)
+  }, [centroSlug])
 
   return (
     <div className="flex flex-col min-h-svh bg-cream">
@@ -37,7 +39,7 @@ export default function AlumnoHome() {
 
         {/* Card — Iniciar reporte */}
         <button
-          onClick={() => navigate('/alumno/reporte')}
+          onClick={() => navigate(`/alumno/reporte${centroParam}`)}
           className="w-full bg-alumno-dk rounded-2xl p-4 flex items-center gap-4 text-left mb-3 active:scale-[0.98] transition-base"
         >
           <div className="w-12 h-12 bg-mostaza rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
@@ -51,7 +53,7 @@ export default function AlumnoHome() {
 
         {/* Card — Seguir mi reporte */}
         <button
-          onClick={() => navigate('/alumno/mis-casos')}
+          onClick={() => navigate(`/alumno/mis-casos${centroParam}`)}
           className="w-full bg-sage rounded-2xl p-4 flex items-center gap-4 text-left active:scale-[0.98] transition-base"
         >
           <div className="w-12 h-12 bg-mostaza rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
