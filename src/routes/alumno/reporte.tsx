@@ -387,6 +387,7 @@ export default function AlumnoReporte() {
                     type="text"
                     placeholder="Buscar por nombre o curso..."
                     onChange={e => handleSearch(e.target.value)}
+                    onInput={e => handleSearch((e.target as HTMLInputElement).value)}
                     className="w-full pl-9 pr-4 py-3 bg-white border border-hairline rounded-2xl text-sm focus:outline-none focus:border-alumno"
                   />
                 </div>
