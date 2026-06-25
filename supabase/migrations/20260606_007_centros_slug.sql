@@ -11,8 +11,8 @@ ALTER TABLE centros ADD COLUMN IF NOT EXISTS slug TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_centros_slug ON centros(slug) WHERE slug IS NOT NULL;
 
 -- Rellenar el seed de prueba
-UPDATE centros SET slug = 'ies-cervantes-central'
+UPDATE centros SET slug = 'iesCervantesCentral'
   WHERE id = 'b0000000-0000-0000-0000-000000000001';
 
-UPDATE centros SET slug = 'ceip-machado-sevilla'
+UPDATE centros SET slug = 'ceipMachadoSevilla'
   WHERE id = 'b0000000-0000-0000-0000-000000000002';

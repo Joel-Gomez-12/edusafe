@@ -111,7 +111,11 @@ export default function AlumnoLayout() {
     const slug = searchParams.get('centro')
     if (slug) {
       localStorage.setItem('edusafe_centro_slug', slug)
-      const nombre = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      const nombre = slug
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/-/g, ' ')
+        .trim()
+        .replace(/\b\w/g, c => c.toUpperCase())
       localStorage.setItem('edusafe_centro_nombre', nombre)
     }
   }, [searchParams])
