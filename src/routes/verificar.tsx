@@ -1,5 +1,7 @@
 // Sprint 6: Verificación pública de actas — sin autenticación
 import { useEffect, useState } from 'react'
+import { dateLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { Shield, CheckCircle, XCircle, Loader } from 'lucide-react'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
@@ -7,6 +9,13 @@ import type { VerifyActaResponse } from '@/lib/edusafe/types'
 
 export default function VerificarActa() {
   const { csv_code } = useParams<{ csv_code: string }>()
+  const { t } = useTranslation()
+
+  // El servidor devuelve el tipo de acta en español; se traduce aquí si es uno conocido
+  const typeLabel = (type?: string | null) =>
+    type === 'Acta final de resolución' ? t('verificar.type_final')
+    : type === 'Acta borrador'          ? t('verificar.type_draft')
+    : type ?? '—'
   const [result, setResult] = useState<VerifyActaResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -30,16 +39,16 @@ export default function VerificarActa() {
         {loading && (
           <div className="flex flex-col items-center gap-3">
             <Loader className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-sm text-ink-soft">Verificando autenticidad del acta...</p>
+            <p className="text-sm text-ink-soft">{t('verificar.checking')}</p>
           </div>
         )}
 
         {!loading && error && (
           <div className="flex flex-col items-center gap-3">
             <XCircle className="w-12 h-12 text-alerta-critica" />
-            <h1 className="text-xl font-display text-ink">Acta no encontrada</h1>
+            <h1 className="text-xl font-display text-ink">{t('verificar.not_found_title')}</h1>
             <p className="text-sm text-ink-soft">
-              El código <strong className="font-mono">{csv_code}</strong> no corresponde a ningún acta válida en nuestro sistema.
+              {t('verificar.not_found_1')} <strong className="font-mono">{csv_code}</strong> {t('verificar.not_found_2')}
             </p>
           </div>
         )}
@@ -47,16 +56,16 @@ export default function VerificarActa() {
         {!loading && result && result.valid && (
           <div className="flex flex-col items-center gap-4">
             <CheckCircle className="w-12 h-12 text-sage-dk" />
-            <h1 className="text-xl font-display text-ink">Acta válida</h1>
+            <h1 className="text-xl font-display text-ink">{t('verificar.valid_title')}</h1>
             <div className="w-full bg-cream-lt border border-hairline rounded-xl p-4 text-left flex flex-col gap-2">
-              <MetaRow label="Centro" value={result.centro ?? '—'} />
-              <MetaRow label="Tipo" value={result.type ?? '—'} />
-              <MetaRow label="Código caso" value={result.case_code ?? '—'} />
-              <MetaRow label="Generada" value={result.generated_at ? new Date(result.generated_at).toLocaleString('es-ES') : '—'} />
+              <MetaRow label={t('verificar.school')} value={result.centro ?? '—'} />
+              <MetaRow label={t('verificar.type')} value={typeLabel(result.type)} />
+              <MetaRow label={t('verificar.case_code')} value={result.case_code ?? '—'} />
+              <MetaRow label={t('verificar.generated')} value={result.generated_at ? new Date(result.generated_at).toLocaleString(dateLocale()) : '—'} />
               <MetaRow label="SHA-256" value={(result.sha256_hash ?? '').slice(0, 16) + '...'} mono />
             </div>
             <p className="text-xs text-muted">
-              Esta verificación no revela el contenido del acta, solo confirma su autenticidad.
+              {t('verificar.disclaimer')}
             </p>
           </div>
         )}

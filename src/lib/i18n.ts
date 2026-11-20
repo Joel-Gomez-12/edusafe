@@ -19,4 +19,9 @@ i18n
 document.documentElement.lang = i18n.language || 'es'
 i18n.on('languageChanged', lng => { document.documentElement.lang = lng })
 
+/** Configuración regional para formatear fechas y números según el idioma activo. */
+export function dateLocale(): string {
+  return i18n.language === 'en' ? 'en-GB' : 'es-ES'
+}
+
 export default i18n

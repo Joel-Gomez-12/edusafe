@@ -21,7 +21,7 @@ function getInitials(name: string): string {
 
 export default function MediadorPerfil() {
   const { user, signOut } = useAuth()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [profile, setProfile] = useState<MediadorProfile | null>(null)
 
   useEffect(() => { loadProfile() }, [])
@@ -50,9 +50,9 @@ export default function MediadorPerfil() {
   const initials = profile ? getInitials(profile.full_name) : '…'
 
   const menuRows: Array<{ label: string; value?: string; action?: () => void; danger?: boolean }> = [
-    { label: 'Notificaciones' },
-    { label: 'Idioma', value: 'ES' },
-    { label: 'Manual del mediador' },
+    { label: t('mediador_perfil.notifications') },
+    { label: t('mediador_perfil.language'), value: i18n.language.toUpperCase() },
+    { label: t('mediador_perfil.manual') },
     { label: t('mediador_perfil.logout'), action: signOut, danger: true },
   ]
 
@@ -89,7 +89,7 @@ export default function MediadorPerfil() {
         {/* Sección cuenta */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Cuenta
+            {t('mediador_perfil.account')}
           </p>
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
             {menuRows.map(({ label, value, action, danger }, idx) => (

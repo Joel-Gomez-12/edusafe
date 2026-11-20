@@ -27,9 +27,9 @@ function getInitials(name: string): string {
 }
 
 const TENANT_TYPE_LABEL: Record<string, string> = {
-  centro_individual: 'Centro',
-  grupo_escolar:     'Titularidad',
-  ayuntamiento:      'Ayuntamiento',
+  centro_individual: 'director_perfil.tenant_centro',
+  grupo_escolar:     'director_perfil.tenant_titularidad',
+  ayuntamiento:      'director_perfil.tenant_ayuntamiento',
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ export default function DirectorPerfil() {
       setProfile({
         full_name:     dir.full_name,
         email:         dir.email,
-        tenantType:    TENANT_TYPE_LABEL[tenant?.type ?? ''] ?? 'Centro',
+        tenantType:    TENANT_TYPE_LABEL[tenant?.type ?? ''] ?? 'director_perfil.tenant_centro',
         centroCount:   centroCount ?? 0,
         mediatorCount: mediatorCount ?? 0,
         zoneCount:     distinctZones,
@@ -124,7 +124,7 @@ export default function DirectorPerfil() {
                   {profile?.full_name ?? user?.email?.split('@')[0] ?? '…'}
                 </p>
                 <p className="text-sm text-muted font-medium">
-                  {t('director_perfil.role')} · {profile?.tenantType}
+                  {t('director_perfil.role')} · {profile ? t(profile.tenantType) : ''}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
                   {profile?.centroCount ?? 0} centros
@@ -135,13 +135,13 @@ export default function DirectorPerfil() {
             {/* ── Centro y equipo ─────────────────────────────────────────────── */}
             <div>
               <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-                Centro y equipo
+                {t('director_perfil.section_team')}
               </p>
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
 
                 {/* Equipo de mediación */}
                 <button className="w-full flex items-center justify-between px-4 py-4 text-left active:bg-cream transition-base">
-                  <span className="text-sm font-medium text-ink">Equipo de mediación</span>
+                  <span className="text-sm font-medium text-ink">{t('director_perfil.team')}</span>
                   <span className="flex items-center gap-1">
                     <span className="text-sm font-semibold text-mostaza">
                       {profile?.mediatorCount ?? 0}
@@ -152,7 +152,7 @@ export default function DirectorPerfil() {
 
                 {/* Zonas del centro */}
                 <button className="w-full flex items-center justify-between px-4 py-4 text-left border-t border-hairline active:bg-cream transition-base">
-                  <span className="text-sm font-medium text-ink">Zonas del centro</span>
+                  <span className="text-sm font-medium text-ink">{t('director_perfil.zones')}</span>
                   <span className="flex items-center gap-1">
                     <span className="text-sm font-semibold text-mostaza">
                       {profile?.zoneCount ?? 0}
@@ -163,7 +163,7 @@ export default function DirectorPerfil() {
 
                 {/* Cumplimiento legal — solo check, sin navegación */}
                 <div className="flex items-center justify-between px-4 py-4 border-t border-hairline">
-                  <span className="text-sm font-medium text-ink">Cumplimiento legal</span>
+                  <span className="text-sm font-medium text-ink">{t('director_perfil.compliance')}</span>
                   <Check className="w-4 h-4 text-green-500" strokeWidth={2.5} />
                 </div>
 
@@ -171,7 +171,7 @@ export default function DirectorPerfil() {
                 <button
                   className="w-full flex items-center justify-between px-4 py-4 text-left border-t border-hairline active:bg-cream transition-base"
                 >
-                  <span className="text-sm font-medium text-ink">Facturación y plan</span>
+                  <span className="text-sm font-medium text-ink">{t('director_perfil.billing')}</span>
                   <ChevronRight className="w-4 h-4 text-muted" />
                 </button>
 

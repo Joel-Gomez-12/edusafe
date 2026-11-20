@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { dateLocale } from '@/lib/i18n'
 import { useParams, useNavigate } from 'react-router'
 import { ArrowLeft, Send, Lock } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
@@ -30,21 +31,21 @@ interface ReportInfo {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'Ciberacoso', exclusion: 'Exclusión', fisico: 'Físico',
-  verbal: 'Verbal', sexual: 'Sexual', otros: 'Otros',
+  ciberacoso: 'mediador_chat.cat_ciberacoso', exclusion: 'mediador_chat.cat_exclusion', fisico: 'mediador_chat.cat_fisico',
+  verbal: 'mediador_chat.cat_verbal', sexual: 'mediador_chat.cat_sexual', otros: 'mediador_chat.cat_otros',
 }
 
 const STATUS_PILL: Record<ReportStatus, { label: string; cls: string }> = {
-  nuevo:            { label: 'Abierto',           cls: 'bg-white/20 text-white'        },
-  asignado:         { label: 'Asignado',           cls: 'bg-white/20 text-white'        },
-  en_investigacion: { label: 'Activo',             cls: 'bg-sage/70 text-white'         },
-  resuelto:         { label: 'Resuelto',           cls: 'bg-green-500/40 text-white'    },
-  derivado:         { label: 'Derivado',           cls: 'bg-orange-400/40 text-white'   },
-  archivado:        { label: 'Archivado',          cls: 'bg-white/10 text-white/50'     },
+  nuevo:            { label: 'status.nuevo',              cls: 'bg-white/20 text-white'        },
+  asignado:         { label: 'status.asignado',           cls: 'bg-white/20 text-white'        },
+  en_investigacion: { label: 'mediador_chat.status_active', cls: 'bg-sage/70 text-white'         },
+  resuelto:         { label: 'status.resuelto',           cls: 'bg-green-500/40 text-white'    },
+  derivado:         { label: 'status.derivado',           cls: 'bg-orange-400/40 text-white'   },
+  archivado:        { label: 'status.archivado',          cls: 'bg-white/10 text-white/50'     },
 }
 
 function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -142,7 +143,7 @@ export default function MediadorChat() {
         .select('id, case_code, category, severity_level, status, assigned_mediator')
         .eq('id', caseId!)
         .single()
-      if (!r) { toast.error('Caso no encontrado'); navigate('/mediador'); return }
+      if (!r) { toast.error(t('mediador_chat.not_found')); navigate('/mediador'); return }
       setReport(r as ReportInfo)
 
       // Mensajes — solo si ya está asignado al mediador actual
@@ -184,7 +185,7 @@ export default function MediadorChat() {
       if (error) throw error
       setReport(r => r ? { ...r, assigned_mediator: mediatorId, status: 'asignado' } : r)
       await fetchMessages()
-      toast.success('Caso asignado. Ahora puedes chatear.')
+      toast.success(t('mediador_chat.claim_ok'))
     } catch {
       toast.error(t('mediador_chat.error_claim'))
     } finally {
@@ -258,13 +259,13 @@ export default function MediadorChat() {
         </button>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] text-white/50 font-bold tracking-widest uppercase">
-            #{report.case_code} · {CAT_LABEL[report.category ?? ''] ?? 'Caso'}
+            #{report.case_code} · {t(CAT_LABEL[report.category ?? ''] ?? 'common.case')}
           </p>
           <p className="text-white font-semibold text-sm leading-tight mt-0.5">{t('mediador_chat.anonymous_chat')}</p>
           <p className="text-white/55 text-xs mt-0.5">{t('mediador_chat.anonymous_student')}</p>
         </div>
         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0 mt-1 ${pill.cls}`}>
-          {pill.label}
+          {t(pill.label)}
         </span>
       </div>
 
@@ -343,7 +344,7 @@ export default function MediadorChat() {
                   >
                     {!isMe && (
                       <p className="text-[10px] font-semibold text-ink/40 mb-1 uppercase tracking-wider">
-                        Alumno/a
+                        {t('mediador_chat.student_label')}
                       </p>
                     )}
                     <span className="whitespace-pre-wrap break-words">{msg.content}</span>

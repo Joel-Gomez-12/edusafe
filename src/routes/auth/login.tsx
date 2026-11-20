@@ -45,13 +45,13 @@ export default function LoginPage() {
       if (error) throw error
       setSent(true)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error enviando el enlace')
+      toast.error(err instanceof Error ? err.message : t('auth.error_send_link'))
     } finally {
       setLoading(false)
     }
   }
 
-  const roleLabel = role === 'director' ? 'Director/a' : 'Mediador/a'
+  const roleLabel = role === 'director' ? t('auth.role_director') : t('auth.role_mediator')
 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { dateLocale } from '@/lib/i18n'
 import { useNavigate } from 'react-router'
 import { User } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
@@ -53,7 +54,7 @@ function avgResolutionDays(reports: { status: string; created_at: string; closed
 }
 
 function monthLabel(date: Date): string {
-  return date.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
+  return date.toLocaleString(dateLocale(), { month: 'short' }).replace('.', '')
 }
 
 // ─── Heatmap cell ─────────────────────────────────────────────────────────────
@@ -204,7 +205,7 @@ export default function DirectorDashboard() {
       if (alert) {
         setCriticalAlert({
           case_code: alert.case_code,
-          message:   'La mediadora aún no ha respondido al denunciante',
+          message:   'director_dashboard.alert_no_reply',
         })
       }
     } finally {
@@ -214,7 +215,7 @@ export default function DirectorDashboard() {
 
   // ── Month label ─────────────────────────────────────────────────────────────
   const now         = new Date()
-  const currentMonthLabel = now.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
+  const currentMonthLabel = now.toLocaleString(dateLocale(), { month: 'long', year: 'numeric' })
   const monthTitle  = currentMonthLabel.charAt(0).toUpperCase() + currentMonthLabel.slice(1)
 
   // ── Termómetro bar ──────────────────────────────────────────────────────────
@@ -233,7 +234,7 @@ export default function DirectorDashboard() {
               Dirección · {dirData?.full_name ?? '…'}
             </p>
             <h1 className="font-display text-3xl font-bold text-white leading-tight mt-0.5">
-              Centro
+              {t('director_dashboard.header')}
             </h1>
             <p className="text-sm text-white/55 mt-0.5">
               {dirData?.centroNombre ?? '…'} · {monthTitle}
@@ -263,11 +264,11 @@ export default function DirectorDashboard() {
                   <span className="text-2xl flex-shrink-0 leading-none mt-0.5">🚨</span>
                   <div>
                     <p className="text-sm font-bold text-white leading-snug">
-                      1 caso crítico sin atender en 2h
+                      {t('director_dashboard.alert_title')}
                     </p>
                     <p className="text-xs text-white/80 mt-0.5 leading-snug">
-                      #{criticalAlert.case_code} · {criticalAlert.message}.{' '}
-                      Riesgo de incumplimiento del SLA.
+                      #{criticalAlert.case_code} · {t(criticalAlert.message)}.{' '}
+                      {t('director_dashboard.alert_sla')}
                     </p>
                   </div>
                 </div>
@@ -294,9 +295,9 @@ export default function DirectorDashboard() {
                 />
               </div>
               <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] text-muted">Calma</span>
-                <span className="text-[10px] text-muted">Atención</span>
-                <span className="text-[10px] text-muted">Crítico</span>
+                <span className="text-[10px] text-muted">{t('director_dashboard.thermo_calm')}</span>
+                <span className="text-[10px] text-muted">{t('director_dashboard.thermo_attention')}</span>
+                <span className="text-[10px] text-muted">{t('director_dashboard.thermo_critical')}</span>
               </div>
             </div>
 
@@ -370,9 +371,9 @@ export default function DirectorDashboard() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[11px] font-bold tracking-widest text-muted uppercase">
-                  Mapa de calor del centro
+                  {t('director_heatmap.title')}
                 </p>
-                <span className="text-xs text-muted">Este mes</span>
+                <span className="text-xs text-muted">{t('director_dashboard.this_month')}</span>
               </div>
 
               <div className="bg-[#F2EAE5] rounded-2xl p-3 flex flex-col gap-2">
@@ -380,34 +381,34 @@ export default function DirectorDashboard() {
                 {/* Fila 1-2: Patio (alto) + 2×2 aulas */}
                 <div className="flex gap-2">
                   <ZoneCell
-                    zone="patio" label="Patio"
+                    zone="patio" label={t('director_dashboard.zone_patio')}
                     zoneCounts={zoneCounts}
                     className="w-[42%] min-h-[176px]"
                   />
                   <div className="flex-1 grid grid-cols-2 gap-2">
-                    <ZoneCell zone="aula_2b"   label="Aula 2ºB"   zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_3a"   label="Aula 3ºA"   zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_1eso" label="Aula 1ºESO" zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_4eso" label="Aula 4ºESO" zoneCounts={zoneCounts} className="h-20" />
+                    <ZoneCell zone="aula_2b"   label={t('director_dashboard.zone_aula', { name: '2ºB' })}   zoneCounts={zoneCounts} className="h-20" />
+                    <ZoneCell zone="aula_3a"   label={t('director_dashboard.zone_aula', { name: '3ºA' })}   zoneCounts={zoneCounts} className="h-20" />
+                    <ZoneCell zone="aula_1eso" label={t('director_dashboard.zone_aula', { name: '1ºESO' })} zoneCounts={zoneCounts} className="h-20" />
+                    <ZoneCell zone="aula_4eso" label={t('director_dashboard.zone_aula', { name: '4ºESO' })} zoneCounts={zoneCounts} className="h-20" />
                   </div>
                 </div>
 
                 {/* Fila 3: Baños · Pasillo · Clase 4 */}
                 <div className="grid grid-cols-3 gap-2">
-                  <ZoneCell zone="banos"   label="Baños"   zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="pasillo" label="Pasillo" zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="clase_4" label="Clase 4" zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="banos"   label={t('director_dashboard.zone_banos')}   zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="pasillo" label={t('director_dashboard.zone_pasillo')} zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="clase_4" label={t('director_dashboard.zone_clase', { name: '4' })} zoneCounts={zoneCounts} className="h-12" />
                 </div>
 
                 {/* Fila 4: Gimnasio · Comedor */}
                 <div className="grid grid-cols-2 gap-2">
-                  <ZoneCell zone="gimnasio" label="Gimnasio" zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="comedor"  label="Comedor"  zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="gimnasio" label={t('director_dashboard.zone_gimnasio')} zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="comedor"  label={t('director_dashboard.zone_comedor')}  zoneCounts={zoneCounts} className="h-12" />
                 </div>
               </div>
 
               <p className="text-[10px] text-muted mt-2 text-center">
-                * El ciberacoso fuera del centro también se registra
+                {t('director_dashboard.heatmap_note')}
               </p>
             </div>
           </>

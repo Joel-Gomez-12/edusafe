@@ -138,7 +138,7 @@ export default function AlumnoLayout() {
           </div>
           <button
             onClick={() => setShowCalc(true)}
-            aria-label="Modo camuflaje"
+            aria-label={t('ayuda.camo_title')}
             className="fixed bottom-24 right-4 z-50 w-12 h-12 bg-alerta-critica text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-base"
           >
             <X className="w-5 h-5" strokeWidth={3} />

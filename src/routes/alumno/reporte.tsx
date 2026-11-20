@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { X, Send, Paperclip, ArrowLeft, Search } from 'lucide-react'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
@@ -7,12 +8,14 @@ import { toast } from 'sonner'
 
 // ── Tipos ─────────────────────────────────────────────────────
 type MessageRole = 'bot' | 'user'
+// `value` es lo que se guarda (igual en cualquier idioma); `label`, lo que se muestra
+interface Chip { value: string; label: string; icon?: string }
 interface ChatMessage {
   id: string
   role: MessageRole
   text: string
-  chips?: string[]
-  multiChips?: string[]
+  chips?: Chip[]
+  multiChips?: Chip[]
   showSearch?: boolean
   showPhotos?: boolean
   showSubmit?: boolean
@@ -37,64 +40,71 @@ interface VerifyResult {
 
 // ── Badge de verificación ──────────────────────────────────────
 const VERIFY_CFG = {
-  auth:         { label: 'Auténtica',      cls: 'bg-green-100 text-green-700',  icon: '✓' },
-  possible_ai:  { label: 'Posible IA',     cls: 'bg-amber-100 text-amber-700',  icon: '⚠' },
-  undetermined: { label: 'No determinable', cls: 'bg-gray-100 text-gray-500',    icon: '—' },
+  auth:         { label: 'reporte.authentic',    cls: 'bg-green-100 text-green-700',  icon: '✓' },
+  possible_ai:  { label: 'reporte.possible_ai',  cls: 'bg-amber-100 text-amber-700',  icon: '⚠' },
+  undetermined: { label: 'reporte.undetermined', cls: 'bg-gray-100 text-gray-500',    icon: '—' },
 } as const
 
 function VerifyBadge({ result }: { result: VerifyResult | 'loading' }) {
+  const { t } = useTranslation()
   if (result === 'loading') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 text-xs text-ink/40">
         <span className="w-2.5 h-2.5 border border-ink/20 border-t-transparent rounded-full animate-spin" />
-        Verificando…
+        {t('reporte.verify_badge')}
       </span>
     )
   }
   const cfg = VERIFY_CFG[result.status]
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>
-      <span>{cfg.icon}</span>{cfg.label}
+      <span>{cfg.icon}</span>{t(cfg.label)}
     </span>
   )
 }
 
-// ── Script del chatbot ────────────────────────────────────────
+// ── Script del chatbot (los textos son claves de traducción) ──
 const BOT_SCRIPT: ChatMessage[] = [
   {
     id: 'greeting',
     role: 'bot',
-    text: 'Hola 👋 Soy el asistente de EduSafe.\nTodo lo que me cuentes está cifrado.',
+    text: 'reporte.bot_greeting',
   },
   {
     id: 'what',
     role: 'bot',
-    text: 'Para empezar, ¿qué ha pasado?',
+    text: 'reporte.bot_what',
   },
 ]
 
-// Chips de categoría → valor que guarda la BD (reports.category)
-const CATEGORY_CHIPS: Record<string, string> = {
-  'Verbal':     'verbal',
-  'Físico':     'fisico',
-  'Exclusión':  'exclusion',
-  'Ciberacoso': 'ciberacoso',
-  'Sexual':     'sexual',
-  'Otro':       'otros',
-}
+// Opciones del asistente. El valor es el que se envía/guarda (reports.category y
+// reports.zone), siempre el mismo; la etiqueta visible sale de las traducciones.
+const CATEGORY_OPTIONS = ['verbal', 'fisico', 'exclusion', 'ciberacoso', 'sexual', 'otros'] as const
+const WHO_OPTIONS = [
+  { value: 'A mí',           labelKey: 'reporte.who_me' },
+  { value: 'A otra persona', labelKey: 'reporte.who_other' },
+]
+const ZONE_OPTIONS = [
+  { value: 'Online',   labelKey: 'reporte.zone_online',   icon: '🖥️' },
+  { value: 'Aula',     labelKey: 'reporte.zone_aula',     icon: '🏫' },
+  { value: 'Pasillos', labelKey: 'reporte.zone_pasillos', icon: '🚶' },
+  { value: 'Baños',    labelKey: 'reporte.zone_bathroom', icon: '🚻' },
+  { value: 'Patio',    labelKey: 'reporte.zone_patio',    icon: '🌳' },
+]
 
 function botId() { return `bot-${Math.random().toString(36).slice(2)}` }
 function userMsg(text: string): ChatMessage { return { id: botId(), role: 'user', text } }
 
 export default function AlumnoReporte() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const centroSlugFromUrl = resolveCentroSlug(searchParams)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const [messages, setMessages] = useState<ChatMessage[]>(BOT_SCRIPT)
+  const [messages, setMessages] = useState<ChatMessage[]>(() => BOT_SCRIPT.map(m => ({ ...m, text: t(m.text) })))
   const [inputText, setInputText] = useState('')
   const [state, setState] = useState<WizardState>({
     step: 1,           // 1=descripción, 2=quién/dónde, 3=agresor, 4=fotos
@@ -147,29 +157,29 @@ export default function AlumnoReporte() {
 
       setTimeout(() => {
         addBotMessages([
-          { role: 'bot', text: 'Gracias por contármelo. ¿Qué tipo de situación es?', chips: Object.keys(CATEGORY_CHIPS) },
+          { role: 'bot', text: t('reporte.bot_category'), chips: CATEGORY_OPTIONS.map(c => ({ value: c, label: t(`reporte.cat_${c}`) })) },
         ])
       }, 400)
     }
   }
 
-  function handleChip(chip: string) {
+  function handleChip(chip: Chip) {
     if (state.step === 2 && !state.category) {
-      setState(s => ({ ...s, category: CATEGORY_CHIPS[chip] ?? 'otros' }))
-      setMessages(prev => [...prev, userMsg(chip)])
+      setState(s => ({ ...s, category: chip.value }))
+      setMessages(prev => [...prev, userMsg(chip.label)])
       setTimeout(() => {
         addBotMessages([
-          { role: 'bot', text: '¿A quién le está pasando?', chips: ['A mí', 'A otra persona'] },
+          { role: 'bot', text: t('reporte.bot_who'), chips: WHO_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey) })) },
         ])
       }, 400)
       return
     }
     if (state.step === 2 && !state.whoAffected) {
-      setState(s => ({ ...s, whoAffected: chip }))
-      setMessages(prev => [...prev, userMsg(chip)])
+      setState(s => ({ ...s, whoAffected: chip.value }))
+      setMessages(prev => [...prev, userMsg(chip.label)])
       setTimeout(() => {
         addBotMessages([
-          { role: 'bot', text: '¿Dónde ocurre principalmente?', multiChips: ['Online', 'Aula', 'Pasillos', 'Baños', 'Patio'] },
+          { role: 'bot', text: t('reporte.bot_where'), multiChips: ZONE_OPTIONS.map(o => ({ value: o.value, label: t(o.labelKey), icon: o.icon })) },
         ])
       }, 400)
     }
@@ -186,12 +196,13 @@ export default function AlumnoReporte() {
 
   function confirmZones() {
     if (state.zones.length === 0) return
-    setMessages(prev => [...prev, userMsg(state.zones.join(', '))])
+    const zoneLabels = state.zones.map(z => t(ZONE_OPTIONS.find(o => o.value === z)?.labelKey ?? z))
+    setMessages(prev => [...prev, userMsg(zoneLabels.join(', '))])
     setState(s => ({ ...s, step: 3 }))
     setTimeout(() => {
       addBotMessages([{
         role: 'bot',
-        text: '¿Sabes quién es la persona que lo hace? Tranquilo — solo buscaremos por nombre y curso, sin fotos.',
+        text: t('reporte.bot_perpetrator'),
         showSearch: true,
       }])
     }, 400)
@@ -218,13 +229,13 @@ export default function AlumnoReporte() {
   }
 
   function skipPerpetrator() {
-    setMessages(prev => [...prev, userMsg('No sé / prefiero no decirlo')])
+    setMessages(prev => [...prev, userMsg(t('reporte.skip'))])
     setState(s => ({ ...s, step: 4 }))
     goToPhotos()
   }
 
   function confirmPerpetrator() {
-    const name = state.perpetratorName || 'No indicado'
+    const name = state.perpetratorName || t('reporte.not_indicated')
     setMessages(prev => [...prev, userMsg(name)])
     setState(s => ({ ...s, step: 4 }))
     goToPhotos()
@@ -234,7 +245,7 @@ export default function AlumnoReporte() {
     setTimeout(() => {
       addBotMessages([{
         role: 'bot',
-        text: '¿Tienes capturas o fotos que demuestren lo que pasa? Puedes adjuntar hasta 4 (se borran los metadatos automáticamente).',
+        text: t('reporte.bot_photos'),
         showPhotos: true,
         showSubmit: true,
       }])
@@ -271,7 +282,7 @@ export default function AlumnoReporte() {
 
   // ── Enviar reporte ────────────────────────────────────────────
   async function submitReport() {
-    if (!state.description) { toast.error('Describe qué ha pasado'); return }
+    if (!state.description) { toast.error(t('reporte.error_describe')); return }
     setSubmitting(true)
     try {
       const deviceToken = getDeviceToken()
@@ -293,7 +304,7 @@ export default function AlumnoReporte() {
       if (state.photos.length > 0) {
         const failed = await uploadEvidence(res.case_code, deviceToken)
         if (failed > 0) {
-          toast.warning(`Tu reporte se envió, pero ${failed} captura${failed > 1 ? 's' : ''} no se pudo adjuntar.`)
+          toast.warning(t('reporte.evidence_failed', { count: failed }))
         }
       }
       // Limpiar el input de archivos antes de navegar (evita conflicto con extensiones)
@@ -301,7 +312,7 @@ export default function AlumnoReporte() {
       // Pequeño delay para que React limpie el estado antes de navegar
       setTimeout(() => navigate(`/alumno/llave?caso=${res.case_code}`, { replace: true }), 50)
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al enviar el reporte')
+      toast.error(err instanceof Error ? err.message : t('reporte.error_send'))
     } finally {
       setSubmitting(false)
     }
@@ -344,8 +355,8 @@ export default function AlumnoReporte() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Paso {Math.min(state.step, 4)} de 4</p>
-          <p className="text-white font-display font-bold text-base leading-tight">Cuéntame qué pasa</p>
+          <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">{t('reporte.step_of', { n: Math.min(state.step, 4) })}</p>
+          <p className="text-white font-display font-bold text-base leading-tight">{t('reporte.header_title')}</p>
         </div>
         <button onClick={() => navigate('/alumno')} className="text-white/70 active:text-white transition-base">
           <X className="w-5 h-5" />
@@ -381,11 +392,11 @@ export default function AlumnoReporte() {
               <div className="flex flex-wrap gap-2 mt-2 ml-1">
                 {msg.chips.map(chip => (
                   <button
-                    key={chip}
+                    key={chip.value}
                     onClick={() => handleChip(chip)}
                     className="px-4 py-2 rounded-full border border-alumno text-alumno text-sm font-medium bg-white active:bg-alumno-lt transition-base"
                   >
-                    {chip}
+                    {chip.label}
                   </button>
                 ))}
               </div>
@@ -396,18 +407,17 @@ export default function AlumnoReporte() {
               <div className="mt-2 ml-1">
                 <div className="flex flex-wrap gap-2 mb-3">
                   {msg.multiChips.map(chip => {
-                    const icons: Record<string, string> = { Online: '🖥️', Aula: '🏫', Pasillos: '🚶', Baños: '🚻', Patio: '🌳' }
                     return (
                       <button
-                        key={chip}
-                        onClick={() => handleMultiChip(chip)}
+                        key={chip.value}
+                        onClick={() => handleMultiChip(chip.value)}
                         className={`px-3 py-2 rounded-full text-sm font-medium border transition-base active:scale-95 flex items-center gap-1 ${
-                          state.zones.includes(chip)
+                          state.zones.includes(chip.value)
                             ? 'bg-alumno text-white border-alumno'
                             : 'bg-white text-ink border-hairline'
                         }`}
                       >
-                        <span>{icons[chip]}</span> {chip}
+                        <span>{chip.icon}</span> {chip.label}
                       </button>
                     )
                   })}
@@ -417,7 +427,7 @@ export default function AlumnoReporte() {
                   disabled={state.zones.length === 0}
                   className="px-5 py-2 bg-alumno text-white rounded-full text-sm font-semibold disabled:opacity-40 active:scale-95 transition-base"
                 >
-                  Confirmar →
+                  {t('reporte.confirm')}
                 </button>
               </div>
             )}
@@ -430,7 +440,7 @@ export default function AlumnoReporte() {
                   <input
                     ref={searchRef}
                     type="text"
-                    placeholder="Buscar por nombre o curso..."
+                    placeholder={t('reporte.search_placeholder')}
                     onChange={e => handleSearch(e.target.value)}
                     onInput={e => handleSearch((e.target as HTMLInputElement).value)}
                     className="w-full pl-9 pr-4 py-3 bg-white border border-hairline rounded-2xl text-sm focus:outline-none focus:border-alumno"
@@ -455,13 +465,13 @@ export default function AlumnoReporte() {
                     onClick={skipPerpetrator}
                     className="flex-1 py-2 rounded-full border border-hairline text-sm text-ink/60"
                   >
-                    No sé / saltar
+                    {t('reporte.skip_short')}
                   </button>
                   <button
                     onClick={confirmPerpetrator}
                     className="flex-1 py-2 rounded-full bg-alumno text-white text-sm font-semibold active:scale-95 transition-base"
                   >
-                    Continuar →
+                    {t('reporte.continue')}
                   </button>
                 </div>
               </div>
@@ -501,7 +511,7 @@ export default function AlumnoReporte() {
                       ) : (
                         <>
                           <span className="text-2xl mb-1">📷</span>
-                          <span className="text-xs">Captura {i + 1}</span>
+                          <span className="text-xs">{t('reporte.capture_n', { n: i + 1 })}</span>
                         </>
                       )}
                     </button>
@@ -515,14 +525,14 @@ export default function AlumnoReporte() {
                   {submitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <>Enviar reporte ▶</>
+                    <>{t('reporte.send_report_btn')}</>
                   )}
                 </button>
                 <button
                   onClick={() => navigate(-1)}
                   className="w-full py-3 text-sm text-ink/40 mt-1"
                 >
-                  ← Volver
+                  {t('reporte.back')}
                 </button>
               </div>
             )}
@@ -541,7 +551,7 @@ export default function AlumnoReporte() {
           value={inputText}
           onChange={e => setInputText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder={state.step === 1 ? 'Escribe aquí...' : ''}
+          placeholder={state.step === 1 ? t('chat.placeholder') : ''}
           disabled={state.step !== 1}
           className="flex-1 bg-transparent text-sm focus:outline-none text-ink placeholder:text-ink/30 disabled:cursor-default"
         />

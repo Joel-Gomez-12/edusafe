@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
@@ -8,6 +9,7 @@ const EMOJIS = ['☀️','🌈','🎈','🎮','⚽','🐶','🐱','🦊','🐼',
 
 export default function AlumnoLlave() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const caseCode = searchParams.get('caso') ?? ''
 
@@ -23,7 +25,7 @@ export default function AlumnoLlave() {
   }
 
   async function saveLlave() {
-    if (emojiKey.length !== 3) { toast.error('Elige exactamente 3 emojis'); return }
+    if (emojiKey.length !== 3) { toast.error(t('llave.choose_3')); return }
     setSaving(true)
     try {
       const deviceToken = getDeviceToken()
@@ -50,7 +52,7 @@ export default function AlumnoLlave() {
 
       navigate('/alumno/mis-casos')
     } catch {
-      toast.error('Error al guardar la llave. Anota el código del caso y tus emojis.')
+      toast.error(t('llave.error_save'))
     } finally {
       setSaving(false)
     }
@@ -62,11 +64,11 @@ export default function AlumnoLlave() {
       {/* Header */}
       <div className="bg-alumno rounded-2xl p-5 text-white mb-6">
         <p className="text-xs font-semibold tracking-wider uppercase mb-1 text-white/60">
-          Caso {caseCode} creado ✓
+          {t('llave.created', { code: caseCode })}
         </p>
-        <h2 className="font-display text-xl font-bold mb-1">Crea tu llave secreta</h2>
+        <h2 className="font-display text-xl font-bold mb-1">{t('llave.title')}</h2>
         <p className="text-sm text-white/75 leading-snug">
-          Elige 3 emojis en orden. Solo con esta llave podrás acceder a tu caso.
+          {t('llave.subtitle')}
         </p>
       </div>
 
@@ -110,7 +112,7 @@ export default function AlumnoLlave() {
           onClick={() => setEmojiKey([])}
           className="flex-1 py-3 rounded-2xl border border-hairline text-ink text-sm font-medium"
         >
-          Reiniciar
+          {t('llave.reset')}
         </button>
         <button
           onClick={saveLlave}
@@ -119,7 +121,7 @@ export default function AlumnoLlave() {
         >
           {saving
             ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : 'Guardar llave ▶'
+            : t('llave.save')
           }
         </button>
       </div>
