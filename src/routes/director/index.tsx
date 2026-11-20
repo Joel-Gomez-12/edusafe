@@ -57,6 +57,21 @@ function monthLabel(date: Date): string {
   return date.toLocaleString(dateLocale(), { month: 'short' }).replace('.', '')
 }
 
+// ─── Zonas del mapa ───────────────────────────────────────────────────────────
+// El alumno elige la zona en su reporte entre Online, Aula, Pasillos, Baños y Patio.
+// Aquí se traduce ese texto guardado a la celda del mapa. Antes se contaba por el
+// texto literal ("Patio") y las celdas buscaban otras claves ("patio", "aula_2b"),
+// así que el mapa nunca se coloreaba.
+function zoneKey(raw: string): string {
+  const z = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
+  if (z.startsWith('patio'))                         return 'patio'
+  if (z.startsWith('aula') || z.startsWith('clase')) return 'aula'
+  if (z.startsWith('pasillo'))                       return 'pasillo'
+  if (z.startsWith('bano'))                          return 'banos'
+  if (z.startsWith('online'))                        return 'online'
+  return 'otras'
+}
+
 // ─── Heatmap cell ─────────────────────────────────────────────────────────────
 
 function ZoneCell({
@@ -192,7 +207,11 @@ export default function DirectorDashboard() {
 
       // ── Zonas ─────────────────────────────────────────────────────────────
       const zc: Record<string, number> = {}
-      currList.forEach(r => { if (r.zone) zc[r.zone] = (zc[r.zone] ?? 0) + 1 })
+      currList.forEach(r => {
+        if (!r.zone) return
+        // reports.zone guarda las zonas elegidas separadas por comas ("Patio, Aula")
+        new Set(String(r.zone).split(',').map(zoneKey)).forEach(k => { zc[k] = (zc[k] ?? 0) + 1 })
+      })
       setZoneCounts(zc)
 
       // ── Alerta crítica (caso crítico > 2h sin atender) ─────────────────────
@@ -378,34 +397,26 @@ export default function DirectorDashboard() {
 
               <div className="bg-[#F2EAE5] rounded-2xl p-3 flex flex-col gap-2">
 
-                {/* Fila 1-2: Patio (alto) + 2×2 aulas */}
-                <div className="flex gap-2">
-                  <ZoneCell
-                    zone="patio" label={t('director_dashboard.zone_patio')}
-                    zoneCounts={zoneCounts}
-                    className="w-[42%] min-h-[176px]"
-                  />
-                  <div className="flex-1 grid grid-cols-2 gap-2">
-                    <ZoneCell zone="aula_2b"   label={t('director_dashboard.zone_aula', { name: '2ºB' })}   zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_3a"   label={t('director_dashboard.zone_aula', { name: '3ºA' })}   zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_1eso" label={t('director_dashboard.zone_aula', { name: '1ºESO' })} zoneCounts={zoneCounts} className="h-20" />
-                    <ZoneCell zone="aula_4eso" label={t('director_dashboard.zone_aula', { name: '4ºESO' })} zoneCounts={zoneCounts} className="h-20" />
-                  </div>
-                </div>
-
-                {/* Fila 3: Baños · Pasillo · Clase 4 */}
-                <div className="grid grid-cols-3 gap-2">
-                  <ZoneCell zone="banos"   label={t('director_dashboard.zone_banos')}   zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="pasillo" label={t('director_dashboard.zone_pasillo')} zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="clase_4" label={t('director_dashboard.zone_clase', { name: '4' })} zoneCounts={zoneCounts} className="h-12" />
-                </div>
-
-                {/* Fila 4: Gimnasio · Comedor */}
+                {/* Las celdas son exactamente las zonas que el alumno puede elegir */}
+                {/* Fila 1: Patio · Aulas */}
                 <div className="grid grid-cols-2 gap-2">
-                  <ZoneCell zone="gimnasio" label={t('director_dashboard.zone_gimnasio')} zoneCounts={zoneCounts} className="h-12" />
-                  <ZoneCell zone="comedor"  label={t('director_dashboard.zone_comedor')}  zoneCounts={zoneCounts} className="h-12" />
+                  <ZoneCell zone="patio" label={t('director_dashboard.zone_patio')} zoneCounts={zoneCounts} className="min-h-[112px]" />
+                  <ZoneCell zone="aula"  label={t('director_dashboard.zone_aulas')} zoneCounts={zoneCounts} className="min-h-[112px]" />
+                </div>
+
+                {/* Fila 2: Pasillos · Baños · Online */}
+                <div className="grid grid-cols-3 gap-2">
+                  <ZoneCell zone="pasillo" label={t('director_dashboard.zone_pasillos')} zoneCounts={zoneCounts} className="h-20" />
+                  <ZoneCell zone="banos"   label={t('director_dashboard.zone_banos')}    zoneCounts={zoneCounts} className="h-20" />
+                  <ZoneCell zone="online"  label={t('director_dashboard.zone_online')}   zoneCounts={zoneCounts} className="h-20" />
                 </div>
               </div>
+
+              {(zoneCounts.otras ?? 0) > 0 && (
+                <p className="text-xs text-muted mt-2 text-center">
+                  {t('director_dashboard.other_zones', { count: zoneCounts.otras })}
+                </p>
+              )}
 
               <p className="text-[10px] text-muted mt-2 text-center">
                 {t('director_dashboard.heatmap_note')}

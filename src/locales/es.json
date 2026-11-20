@@ -470,10 +470,15 @@
     "zone_clase": "Clase {{name}}",
     "zone_gimnasio": "Gimnasio",
     "zone_comedor": "Comedor",
-    "heatmap_note": "* El ciberacoso fuera del centro también se registra",
+    "heatmap_note": "* Un reporte puede marcar varias zonas",
     "role_badge": "Dirección",
     "index_basis_one": "Índice basado en {{count}} reporte este mes",
-    "index_basis_other": "Índice basado en {{count}} reportes este mes"
+    "index_basis_other": "Índice basado en {{count}} reportes este mes",
+    "zone_aulas": "Aulas",
+    "zone_pasillos": "Pasillos",
+    "zone_online": "Online",
+    "other_zones_one": "{{count}} reporte en otras zonas",
+    "other_zones_other": "{{count}} reportes en otras zonas"
   },
   "director_alertas": {
     "title": "Alertas",
@@ -493,7 +498,9 @@
     "ranking_title": "Ranking de reincidencia",
     "privacy_tag": "Privacidad",
     "no_recurrence": "Sin reincidentes este mes",
-    "sla_title": "Cumplimiento de plazos"
+    "sla_title": "Cumplimiento de plazos",
+    "report_count_one": "{{count}} reporte",
+    "report_count_other": "{{count}} reportes"
   },
   "director_centros": {
     "title": "Centros",
@@ -557,7 +564,9 @@
     "team": "Equipo de mediación",
     "zones": "Zonas del centro",
     "compliance": "Cumplimiento legal",
-    "billing": "Facturación y plan"
+    "billing": "Facturación y plan",
+    "school_count_one": "{{count}} centro",
+    "school_count_other": "{{count}} centros"
   },
   "common": {
     "back": "Volver",

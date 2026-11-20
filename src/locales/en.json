@@ -470,10 +470,15 @@
     "zone_clase": "Class {{name}}",
     "zone_gimnasio": "Gym",
     "zone_comedor": "Canteen",
-    "heatmap_note": "* Cyberbullying outside school is recorded too",
+    "heatmap_note": "* A report can mark several areas",
     "role_badge": "Head teacher",
     "index_basis_one": "Index based on {{count}} report this month",
-    "index_basis_other": "Index based on {{count}} reports this month"
+    "index_basis_other": "Index based on {{count}} reports this month",
+    "zone_aulas": "Classrooms",
+    "zone_pasillos": "Hallways",
+    "zone_online": "Online",
+    "other_zones_one": "{{count}} report in other areas",
+    "other_zones_other": "{{count}} reports in other areas"
   },
   "director_alertas": {
     "title": "Alerts",
@@ -493,7 +498,9 @@
     "ranking_title": "Recurrence ranking",
     "privacy_tag": "Privacy",
     "no_recurrence": "No repeat offenders this month",
-    "sla_title": "Deadline compliance"
+    "sla_title": "Deadline compliance",
+    "report_count_one": "{{count}} report",
+    "report_count_other": "{{count}} reports"
   },
   "director_centros": {
     "title": "Schools",
@@ -557,7 +564,9 @@
     "team": "Mediation team",
     "zones": "School areas",
     "compliance": "Legal compliance",
-    "billing": "Billing and plan"
+    "billing": "Billing and plan",
+    "school_count_one": "{{count}} school",
+    "school_count_other": "{{count}} schools"
   },
   "common": {
     "back": "Back",
