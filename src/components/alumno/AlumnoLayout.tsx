@@ -122,7 +122,7 @@ export default function AlumnoLayout() {
   }, [searchParams])
 
   return (
-    <div className="min-h-svh flex flex-col bg-cream">
+    <div className="app-shell app-shell-alumno min-h-svh flex flex-col bg-cream">
       <div className="flex-1 overflow-auto pb-20">
         <Outlet />
       </div>
@@ -133,13 +133,13 @@ export default function AlumnoLayout() {
       {/* Selector de idioma + FAB modo camuflaje — solo en Inicio */}
       {isInicio && !showCalc && (
         <>
-          <div className="fixed bottom-24 right-20 z-50">
+          <div className="fixed bottom-24 app-right [--r:5rem] z-50">
             <LanguageSwitcher />
           </div>
           <button
             onClick={() => setShowCalc(true)}
             aria-label={t('ayuda.camo_title')}
-            className="fixed bottom-24 right-4 z-50 w-12 h-12 bg-alerta-critica text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-base"
+            className="fixed bottom-24 app-right z-50 w-12 h-12 bg-alerta-critica text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-base"
           >
             <X className="w-5 h-5" strokeWidth={3} />
           </button>
@@ -147,7 +147,7 @@ export default function AlumnoLayout() {
       )}
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-hairline safe-bottom flex">
+      <nav className="fixed bottom-0 app-fixed-x z-40 bg-white border-t border-hairline safe-bottom flex">
         {NAV.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}

@@ -115,3 +115,38 @@ p { margin: 0; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Marco de la app en pantallas grandes ─────────────────────────────────────
+   La app está diseñada para móvil. En tablet y ordenador el contenido se limita
+   a una columna centrada en vez de estirarse de lado a lado.
+   · .app-shell      columna centrada (ancho en --shell)
+   · .app-fixed-x    elementos fijos a todo el ancho (barra inferior): se alinean
+                     con la columna en vez de con la ventana
+   · .app-right      elementos fijos pegados a la derecha (botones flotantes):
+                     distancia al borde de la columna en --r (por defecto 1rem)
+   En móvil la columna ocupa toda la pantalla y nada cambia.                    */
+.app-shell-alumno { --shell: 480px; }
+.app-shell-staff  { --shell: 760px; }
+
+.app-shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--color-cream);
+}
+
+.app-fixed-x {
+  left:  max(0px, calc(50% - var(--shell) / 2));
+  right: max(0px, calc(50% - var(--shell) / 2));
+}
+
+.app-right {
+  right: max(var(--r, 1rem), calc(50% - var(--shell) / 2 + var(--r, 1rem)));
+}
+
+/* Fuera de la columna: fondo algo más oscuro y sombra suave para enmarcarla */
+@media (min-width: 640px) {
+  body { background-color: #ECE6DC; }
+  .app-shell { box-shadow: 0 0 0 1px var(--color-hairline), 0 12px 48px rgb(30 58 95 / 0.10); }
+}

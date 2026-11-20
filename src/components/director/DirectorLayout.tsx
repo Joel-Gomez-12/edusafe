@@ -15,17 +15,17 @@ export default function DirectorLayout() {
   ]
 
   return (
-    <div className="flex flex-col min-h-svh">
+    <div className="app-shell app-shell-staff flex flex-col min-h-svh">
       <div className="flex-1 overflow-y-auto pb-20">
         <Outlet />
       </div>
 
       {/* Selector de idioma flotante */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 app-right z-50">
         <LanguageSwitcher />
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-hairline flex z-40">
+      <nav className="fixed bottom-0 app-fixed-x bg-white border-t border-hairline flex z-40">
         {tabs.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
