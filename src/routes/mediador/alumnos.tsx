@@ -51,7 +51,7 @@ export default function MediadorAlumnos() {
           .eq('active', true),
         supabase
           .from('students')
-          .select('grupo')
+          .select('curso, grupo')
           .eq('centro_id', med.centro_id)
           .eq('active', true),
         supabase
@@ -61,7 +61,11 @@ export default function MediadorAlumnos() {
           .single(),
       ])
 
-      const grupos = new Set(gruposData?.map(s => s.grupo) ?? []).size
+      // Un grupo es una clase: curso + letra (1ºA y 2ºA son grupos distintos).
+      // Antes se contaban solo las letras, y un centro con 18 clases mostraba "3".
+      const grupos = new Set(
+        (gruposData as { curso: string; grupo: string }[] | null)?.map(s => s.curso + '|' + s.grupo) ?? [],
+      ).size
       setStats({ total: total ?? 0, grupos, lastUpdate: centro?.csv_uploaded_at ?? null })
     } finally {
       setLoading(false)
