@@ -220,7 +220,7 @@ export default function DirectorAlertas() {
 
                       {/* Conteo */}
                       <span className="text-sm text-muted">
-                        {r.count} reportes
+                        {t('director_alertas.report_count', { count: r.count })}
                       </span>
                     </div>
                   ))}

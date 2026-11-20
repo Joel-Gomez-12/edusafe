@@ -127,7 +127,7 @@ export default function DirectorPerfil() {
                   {t('director_perfil.role')} · {profile ? t(profile.tenantType) : ''}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
-                  {profile?.centroCount ?? 0} centros
+                  {t('director_perfil.school_count', { count: profile?.centroCount ?? 0 })}
                 </p>
               </div>
             </div>
