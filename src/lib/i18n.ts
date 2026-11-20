@@ -15,4 +15,8 @@ i18n
     interpolation: { escapeValue: false },
   })
 
+// Mantener <html lang> acorde al idioma activo (lectores de pantalla y navegador)
+document.documentElement.lang = i18n.language || 'es'
+i18n.on('languageChanged', lng => { document.documentElement.lang = lng })
+
 export default i18n
