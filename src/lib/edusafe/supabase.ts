@@ -58,8 +58,14 @@ export async function callEdgeFunction<T>(
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }))
-    throw new Error(error.message || `Error ${response.status} en ${name}`)
+    // Las edge functions responden { error: '...' }; se conserva además el código HTTP
+    // para que la pantalla pueda distinguir casos (p. ej. 429 = demasiados intentos).
+    const payload = await response.json().catch(() => ({}))
+    const err = new Error(
+      payload.error || payload.message || `Error ${response.status} en ${name}`,
+    ) as Error & { status?: number }
+    err.status = response.status
+    throw err
   }
 
   return response.json() as Promise<T>
