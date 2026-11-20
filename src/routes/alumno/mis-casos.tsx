@@ -83,8 +83,10 @@ export default function AlumnoMisCasos() {
         device_token: deviceToken,
       }))
       navigate(`/alumno/chat/${res.report_id}`)
-    } catch {
-      toast.error(t('mis_casos.wrong_key'))
+    } catch (err) {
+      // 429: el caso está bloqueado temporalmente por demasiadas llaves incorrectas
+      const locked = (err as { status?: number }).status === 429
+      toast.error(t(locked ? 'mis_casos.locked' : 'mis_casos.wrong_key'))
     } finally {
       setAccessing(false)
     }

@@ -134,7 +134,8 @@
     "time_days_one": "{{count}} day ago",
     "time_days_other": "{{count}} days ago",
     "time_weeks_one": "{{count}} week ago",
-    "time_weeks_other": "{{count}} weeks ago"
+    "time_weeks_other": "{{count}} weeks ago",
+    "locked": "Too many attempts. Wait 15 minutes and try again."
   },
   "chat": {
     "title": "Chat with the mediator",

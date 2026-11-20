@@ -134,7 +134,8 @@
     "time_days_one": "hace {{count}} día",
     "time_days_other": "hace {{count}} días",
     "time_weeks_one": "hace {{count}} semana",
-    "time_weeks_other": "hace {{count}} semanas"
+    "time_weeks_other": "hace {{count}} semanas",
+    "locked": "Demasiados intentos. Espera 15 minutos y vuelve a probar."
   },
   "chat": {
     "title": "Chat con el mediador",
