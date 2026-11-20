@@ -1,4 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router'
+import { normalizeCentroSlug } from '@/lib/edusafe/device'
 import { Shield, MessageSquare, LayoutDashboard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
@@ -7,7 +8,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
-  const centro = searchParams.get('centro') ?? ''
+  const centro = normalizeCentroSlug(searchParams.get('centro'))
   const centroParam = centro ? `?centro=${centro}` : ''
 
   return (

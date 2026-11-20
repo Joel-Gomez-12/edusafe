@@ -15,6 +15,7 @@ interface ChatAccessBody {
   emoji_pattern: string[]
   device_token:  string
   send_content?: string
+  poll?:         boolean   // refresco periódico del chat ya abierto: no se audita
 }
 
 Deno.serve(async (req: Request) => {
@@ -25,7 +26,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body: ChatAccessBody = await req.json()
-    const { case_code, emoji_pattern, device_token, send_content } = body
+    const { case_code, emoji_pattern, device_token, send_content, poll } = body
 
     if (!case_code || !emoji_pattern || !device_token) {
       return errorResponse('case_code, emoji_pattern y device_token son obligatorios', 400)
@@ -73,8 +74,8 @@ Deno.serve(async (req: Request) => {
       .eq('report_id', report.id)
       .order('created_at', { ascending: true })
 
-    // 6. Audit log (solo en acceso, no en cada mensaje)
-    if (!send_content) {
+    // 6. Audit log (solo al abrir el chat; no en cada mensaje ni en cada refresco)
+    if (!send_content && !poll) {
       await supabaseAdmin.from('audit_log').insert({
         tenant_id:     report.tenant_id,
         actor_type:    'alumno',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { supabase } from '@/lib/edusafe/supabase'
+import { supabase, callEdgeFunction } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 
@@ -82,16 +82,7 @@ export default function MediadorAlumnos() {
           if (cols.length < 4) return null
           const [nombre, apellidos, curso, grupo] = cols
           if (!nombre || !curso || !grupo) return null
-          return {
-            tenant_id:   medData.tenant_id,
-            centro_id:   medData.centro_id,
-            full_name:   `${nombre} ${apellidos}`.trim(),
-            curso,
-            grupo,
-            active:      true,
-            external_id: null as string | null,
-            nacido_en:   null as string | null,
-          }
+          return { full_name: `${nombre} ${apellidos}`.trim(), curso, grupo }
         })
         .filter((s): s is NonNullable<typeof s> => s !== null)
 
@@ -100,21 +91,17 @@ export default function MediadorAlumnos() {
         return
       }
 
-      // Insertar en lotes de 100
-      const BATCH = 100
-      let inserted = 0
-      for (let i = 0; i < students.length; i += BATCH) {
-        const { error } = await supabase.from('students').insert(students.slice(i, i + BATCH))
-        if (error) throw error
-        inserted += BATCH
-      }
+      // El alta la hace el servidor (RLS no permite INSERT directo en students):
+      // valida, omite los que ya existen y deja rastro en el audit_log.
+      const res = await callEdgeFunction<{ inserted: number; skipped: number; invalid: number }>(
+        'centros-sync', { body: { students } },
+      )
 
-      await supabase
-        .from('centros')
-        .update({ csv_uploaded_at: new Date().toISOString() })
-        .eq('id', medData.centro_id)
-
-      toast.success(`${inserted} alumnos añadidos al censo`)
+      const extra = [
+        res.skipped > 0 ? `${res.skipped} ya estaban` : '',
+        res.invalid > 0 ? `${res.invalid} con datos incompletos` : '',
+      ].filter(Boolean).join(', ')
+      toast.success(`${res.inserted} alumnos añadidos al censo${extra ? ` (${extra})` : ''}`)
       await loadStats()
     } catch {
       toast.error('Error al procesar el CSV. Verifica el formato.')

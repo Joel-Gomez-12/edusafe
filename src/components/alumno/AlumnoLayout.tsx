@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate, useSearchParams, useLocation } from 'react-router'
+import { normalizeCentroSlug } from '@/lib/edusafe/device'
 import { Home, Megaphone, Lock, BookOpen, HelpCircle, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
@@ -108,7 +109,7 @@ export default function AlumnoLayout() {
   ]
 
   useEffect(() => {
-    const slug = searchParams.get('centro')
+    const slug = normalizeCentroSlug(searchParams.get('centro'))
     if (slug) {
       localStorage.setItem('edusafe_centro_slug', slug)
       const nombre = slug

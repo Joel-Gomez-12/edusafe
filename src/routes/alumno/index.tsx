@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Phone, BookOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { resolveCentroSlug } from '@/lib/edusafe/device'
 
 export default function AlumnoHome() {
   const navigate = useNavigate()
@@ -9,7 +10,7 @@ export default function AlumnoHome() {
   const [searchParams] = useSearchParams()
   const centroNombre = localStorage.getItem('edusafe_centro_nombre') ?? 'Tu centro educativo'
 
-  const centroSlug = searchParams.get('centro') ?? localStorage.getItem('edusafe_centro_slug') ?? ''
+  const centroSlug = resolveCentroSlug(searchParams)
   const centroParam = centroSlug ? `?centro=${centroSlug}` : ''
 
   useEffect(() => {

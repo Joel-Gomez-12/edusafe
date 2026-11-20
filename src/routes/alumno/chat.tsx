@@ -45,24 +45,31 @@ export default function AlumnoChat() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Polling cada 20s para nuevos mensajes del mediador
+  // Polling cada 5s para nuevos mensajes del mediador (pausado si la pestaña no está visible)
   useEffect(() => {
     if (!creds) return
-    const interval = setInterval(() => loadMessages(creds), 20_000)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') loadMessages(creds, true)
+    }, 5_000)
     return () => clearInterval(interval)
   }, [creds])
 
-  async function loadMessages(auth: ActiveChat) {
+  async function loadMessages(auth: ActiveChat, poll = false) {
     try {
       const res = await callEdgeFunction<{ report_id: string; case_code: string; messages: ChatMsg[] }>('chat-access', {
         body: {
           case_code:     auth.case_code,
           device_token:  auth.device_token,
           emoji_pattern: auth.emojis,
+          poll,
         },
       })
-      setMessages(res.messages ?? [])
+      const fresh = res.messages ?? []
+      // No re-renderizar si no hay cambios (evita saltos de scroll en cada refresco)
+      setMessages(prev =>
+        prev.length === fresh.length && prev.every((m, i) => m.id === fresh[i].id) ? prev : fresh)
     } catch {
+      if (poll) return   // un fallo puntual de red en el refresco no expulsa del chat
       toast.error('No se pudo cargar el chat.')
       navigate('/alumno/mis-casos')
     } finally {

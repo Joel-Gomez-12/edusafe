@@ -81,6 +81,12 @@ interface ReportDetail {
   flagged_as_crime: boolean
   text_verification: VerifyResult | null
 }
+interface EvidenceItem {
+  id: string
+  file_name: string
+  verification: VerifyResult | null
+  url: string | null
+}
 interface Involved {
   role: string
   student: { full_name: string; curso: string; grupo: string } | null
@@ -92,7 +98,7 @@ export default function MediadorCaso() {
 
   const [report,        setReport]        = useState<ReportDetail | null>(null)
   const [involved,      setInvolved]      = useState<Involved[]>([])
-  const [evidenceCount, setEvidenceCount] = useState(0)
+  const [evidence,      setEvidence]      = useState<EvidenceItem[]>([])
   const [loading,       setLoading]       = useState(true)
   const [savingStep,    setSavingStep]    = useState<number | null>(null)
 
@@ -125,11 +131,23 @@ export default function MediadorCaso() {
         .eq('report_id', id)
       setInvolved((inv ?? []).map((i: { role: string; students: { full_name: string; curso: string; grupo: string } | null }) => ({ role: i.role, student: i.students })))
 
-      const { count } = await supabase
+      const { data: files } = await supabase
         .from('evidence_files')
-        .select('*', { count: 'exact', head: true })
+        .select('id, file_name, storage_path, verification')
         .eq('report_id', id)
-      setEvidenceCount(count ?? 0)
+        .order('created_at', { ascending: true })
+
+      // Enlaces firmados de 10 min para ver las capturas (bucket privado)
+      const paths = (files ?? []).map(f => f.storage_path)
+      const { data: signed } = paths.length > 0
+        ? await supabase.storage.from('evidence').createSignedUrls(paths, 600)
+        : { data: [] }
+      setEvidence((files ?? []).map((f, i) => ({
+        id:           f.id,
+        file_name:    f.file_name,
+        verification: (f.verification as VerifyResult | null) ?? null,
+        url:          signed?.[i]?.signedUrl ?? null,
+      })))
     } finally {
       setLoading(false)
     }
@@ -225,7 +243,7 @@ export default function MediadorCaso() {
     {
       ts:      fmtDateTime(report.created_at),
       title:   'Reporte recibido',
-      desc:    `Alumno/a anónimo/a inicia caso.${evidenceCount > 0 ? ` ${evidenceCount} capturas adjuntas.` : ''}`,
+      desc:    `Alumno/a anónimo/a inicia caso.${evidence.length > 0 ? ` ${evidence.length} captura${evidence.length > 1 ? 's' : ''} adjunta${evidence.length > 1 ? 's' : ''}.` : ''}`,
       current: false,
     },
     ...(report.severity_level ? [{
@@ -301,13 +319,14 @@ export default function MediadorCaso() {
         </div>
 
         {/* Evidencias verificadas */}
-        {report.text_verification && (
+        {(report.text_verification || evidence.length > 0) && (
           <>
             <p className="text-[11px] font-bold tracking-widest text-muted uppercase mt-1 mb-3">
               Evidencias verificadas
             </p>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm mb-4">
               {/* Relato del alumno */}
+              {report.text_verification && (
               <div className="flex items-center justify-between px-4 py-3.5">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-ink">Relato del alumno</p>
@@ -326,6 +345,32 @@ export default function MediadorCaso() {
                   )
                 })()}
               </div>
+              )}
+
+              {/* Capturas adjuntas por el alumno */}
+              {evidence.map((ev, i) => {
+                const cfg = VERIFY_CFG[ev.verification?.status ?? 'undetermined']
+                return (
+                  <div key={ev.id} className="flex items-center gap-3 px-4 py-3 border-t border-hairline first:border-t-0">
+                    {ev.url ? (
+                      <a href={ev.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                        <img src={ev.url} alt={`Captura ${i + 1}`} className="w-14 h-14 rounded-xl object-cover border border-hairline" />
+                      </a>
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-cream border border-hairline flex items-center justify-center text-xl flex-shrink-0">📷</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-ink">Captura {i + 1}</p>
+                      <p className="text-xs text-muted mt-0.5">
+                        {ev.url ? 'Toca la imagen para ampliarla' : 'Vista previa no disponible'}
+                      </p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
+                      <span>{cfg.icon}</span>{cfg.label}
+                    </span>
+                  </div>
+                )
+              })}
 
               {/* Nota aclaratoria */}
               <div className="px-4 py-2.5 border-t border-hairline bg-cream/50">

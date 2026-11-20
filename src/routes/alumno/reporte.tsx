@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { X, Send, Paperclip, ArrowLeft, Search } from 'lucide-react'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
+import { resolveCentroSlug, getDeviceToken, prepareEvidenceImage } from '@/lib/edusafe/device'
 import { toast } from 'sonner'
 
 // ── Tipos ─────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ interface ChatMessage {
 interface WizardState {
   step: number
   description: string
+  category: string
   whoAffected: string
   zones: string[]
   perpetratorName: string
@@ -71,13 +73,23 @@ const BOT_SCRIPT: ChatMessage[] = [
   },
 ]
 
+// Chips de categoría → valor que guarda la BD (reports.category)
+const CATEGORY_CHIPS: Record<string, string> = {
+  'Verbal':     'verbal',
+  'Físico':     'fisico',
+  'Exclusión':  'exclusion',
+  'Ciberacoso': 'ciberacoso',
+  'Sexual':     'sexual',
+  'Otro':       'otros',
+}
+
 function botId() { return `bot-${Math.random().toString(36).slice(2)}` }
 function userMsg(text: string): ChatMessage { return { id: botId(), role: 'user', text } }
 
 export default function AlumnoReporte() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const centroSlugFromUrl = searchParams.get('centro') ?? localStorage.getItem('edusafe_centro_slug') ?? ''
+  const centroSlugFromUrl = resolveCentroSlug(searchParams)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -87,6 +99,7 @@ export default function AlumnoReporte() {
   const [state, setState] = useState<WizardState>({
     step: 1,           // 1=descripción, 2=quién/dónde, 3=agresor, 4=fotos
     description: '',
+    category: '',
     whoAffected: '',
     zones: [],
     perpetratorName: '',
@@ -134,13 +147,23 @@ export default function AlumnoReporte() {
 
       setTimeout(() => {
         addBotMessages([
-          { role: 'bot', text: 'Gracias por contármelo. ¿A quién le está pasando?', chips: ['A mí', 'A otra persona'] },
+          { role: 'bot', text: 'Gracias por contármelo. ¿Qué tipo de situación es?', chips: Object.keys(CATEGORY_CHIPS) },
         ])
       }, 400)
     }
   }
 
   function handleChip(chip: string) {
+    if (state.step === 2 && !state.category) {
+      setState(s => ({ ...s, category: CATEGORY_CHIPS[chip] ?? 'otros' }))
+      setMessages(prev => [...prev, userMsg(chip)])
+      setTimeout(() => {
+        addBotMessages([
+          { role: 'bot', text: '¿A quién le está pasando?', chips: ['A mí', 'A otra persona'] },
+        ])
+      }, 400)
+      return
+    }
     if (state.step === 2 && !state.whoAffected) {
       setState(s => ({ ...s, whoAffected: chip }))
       setMessages(prev => [...prev, userMsg(chip)])
@@ -251,8 +274,7 @@ export default function AlumnoReporte() {
     if (!state.description) { toast.error('Describe qué ha pasado'); return }
     setSubmitting(true)
     try {
-      const deviceToken = crypto.randomUUID()
-      localStorage.setItem('edusafe_device_token', deviceToken)
+      const deviceToken = getDeviceToken()
 
       const centroSlug = centroSlugFromUrl
       const res = await callEdgeFunction<{ case_code: string }>('reports-create', {
@@ -263,10 +285,17 @@ export default function AlumnoReporte() {
           who_affected: state.whoAffected,
           zones: state.zones,
           perpetrator_student_id: state.perpetratorId,
-          category: inferCategory(state.description),
+          category: state.category || inferCategory(state.description),
           text_verification: textVerif && textVerif !== 'loading' ? textVerif : undefined,
         },
       })
+      // Subir las capturas ya con el caso creado (no bloquea si alguna falla)
+      if (state.photos.length > 0) {
+        const failed = await uploadEvidence(res.case_code, deviceToken)
+        if (failed > 0) {
+          toast.warning(`Tu reporte se envió, pero ${failed} captura${failed > 1 ? 's' : ''} no se pudo adjuntar.`)
+        }
+      }
       // Limpiar el input de archivos antes de navegar (evita conflicto con extensiones)
       if (fileRef.current) fileRef.current.value = ''
       // Pequeño delay para que React limpie el estado antes de navegar
@@ -276,6 +305,22 @@ export default function AlumnoReporte() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Sube cada captura al bucket privado vía edge function. Devuelve cuántas fallaron.
+  async function uploadEvidence(caseCode: string, deviceToken: string): Promise<number> {
+    const results = await Promise.allSettled(state.photos.map(async (file, i) => {
+      // Recodificar quita los metadatos EXIF; si el formato no se puede leer, se sube tal cual
+      const blob = await prepareEvidenceImage(file).catch(() => file)
+      const form = new FormData()
+      form.append('case_code', caseCode)
+      form.append('device_token', deviceToken)
+      form.append('file', blob, `captura-${i + 1}.jpg`)
+      const verif = photoVerifs[i]
+      if (verif && verif !== 'loading') form.append('verification', JSON.stringify(verif))
+      await callEdgeFunction('evidence-upload', { formData: form })
+    }))
+    return results.filter(r => r.status === 'rejected').length
   }
 
   function inferCategory(desc: string): string {

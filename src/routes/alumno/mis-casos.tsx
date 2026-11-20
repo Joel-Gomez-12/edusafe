@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
+import { getDeviceToken } from '@/lib/edusafe/device'
 
 const EMOJIS = ['☀️','🌈','🎈','🎮','⚽','🐶','🐱','🦊','🐼','🦁','🍕','🍦','🌸','🌻','🚀','🎵','📚','⚡','🍌','✨']
 
@@ -61,7 +62,8 @@ export default function AlumnoMisCasos() {
     if (!activeCaseCode) { toast.error('Selecciona un caso primero'); return }
     setAccessing(true)
     try {
-      const deviceToken = localStorage.getItem('edusafe_device_token') ?? ''
+      // Cada caso guarda el token con el que se creó (casos antiguos pueden tener uno distinto)
+      const deviceToken = cases.find(c => c.case_code === activeCaseCode)?.device_token || getDeviceToken()
       const res = await callEdgeFunction<{ report_id: string; case_code: string }>('chat-access', {
         body: {
           case_code: activeCaseCode,
