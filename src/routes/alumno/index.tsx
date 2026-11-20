@@ -8,7 +8,7 @@ export default function AlumnoHome() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
-  const centroNombre = localStorage.getItem('edusafe_centro_nombre') ?? 'Tu centro educativo'
+  const centroNombre = localStorage.getItem('edusafe_centro_nombre') ?? t('alumno_home.default_school')
 
   const centroSlug = resolveCentroSlug(searchParams)
   const centroParam = centroSlug ? `?centro=${centroSlug}` : ''

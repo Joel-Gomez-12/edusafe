@@ -1,23 +1,27 @@
 import { useState, useEffect, useRef } from 'react'
+import { dateLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import { RefreshCw } from 'lucide-react'
 import { supabase, callEdgeFunction } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
+import i18n from '@/lib/i18n'
 
 interface MediadorData { centro_id: string; tenant_id: string }
 interface Stats { total: number; grupos: number; lastUpdate: string | null }
 
 function fmtDate(dateStr: string | null): string {
-  if (!dateStr) return 'Nunca'
+  if (!dateStr) return i18n.t('mediador_alumnos.never')
   const d     = new Date(dateStr)
   const today = new Date()
   if (d.toDateString() === today.toDateString())
-    return `hoy ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
-  return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    return `${i18n.t('mediador_alumnos.today')} ${d.toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })}`
+  return d.toLocaleDateString(dateLocale(), { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 export default function MediadorAlumnos() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [medData,   setMedData]   = useState<MediadorData | null>(null)
@@ -87,7 +91,7 @@ export default function MediadorAlumnos() {
         .filter((s): s is NonNullable<typeof s> => s !== null)
 
       if (students.length === 0) {
-        toast.error('CSV vacío o formato incorrecto. Usa: nombre, apellidos, curso, grupo')
+        toast.error(t('mediador_alumnos.csv_bad_format'))
         return
       }
 
@@ -98,13 +102,13 @@ export default function MediadorAlumnos() {
       )
 
       const extra = [
-        res.skipped > 0 ? `${res.skipped} ya estaban` : '',
-        res.invalid > 0 ? `${res.invalid} con datos incompletos` : '',
+        res.skipped > 0 ? t('mediador_alumnos.csv_skipped', { n: res.skipped }) : '',
+        res.invalid > 0 ? t('mediador_alumnos.csv_invalid', { n: res.invalid }) : '',
       ].filter(Boolean).join(', ')
-      toast.success(`${res.inserted} alumnos añadidos al censo${extra ? ` (${extra})` : ''}`)
+      toast.success(t('mediador_alumnos.csv_added', { count: res.inserted }) + (extra ? ` (${extra})` : ''))
       await loadStats()
     } catch {
-      toast.error('Error al procesar el CSV. Verifica el formato.')
+      toast.error(t('mediador_alumnos.csv_error'))
     } finally {
       setUploading(false)
     }
@@ -115,14 +119,13 @@ export default function MediadorAlumnos() {
     setDragging(false)
     const file = e.dataTransfer.files[0]
     if (file?.name.endsWith('.csv')) processCSV(file)
-    else toast.error('El archivo debe ser un CSV')
+    else toast.error(t('mediador_alumnos.csv_only'))
   }
 
   const statsRows = [
-    { label: 'Alumnos totales',       value: stats?.total.toLocaleString('es-ES') ?? '—'  },
-    { label: 'Grupos',                 value: stats?.grupos.toString() ?? '—'              },
-    { label: 'Última actualización',   value: fmtDate(stats?.lastUpdate ?? null)            },
-    { label: 'Próxima sincronización', value: 'esta noche 02:00'                           },
+    { label: t('mediador_alumnos.stat_total'),  value: stats?.total.toLocaleString(dateLocale()) ?? '—' },
+    { label: t('mediador_alumnos.stat_groups'), value: stats?.grupos.toString() ?? '—'             },
+    { label: t('mediador_alumnos.stat_last'),   value: fmtDate(stats?.lastUpdate ?? null)           },
   ]
 
   return (
@@ -130,12 +133,12 @@ export default function MediadorAlumnos() {
       {/* Cabecera */}
       <div className="bg-mediador px-5 pt-12 pb-5">
         <h1 className="font-display text-3xl font-bold text-white leading-tight">
-          Censo de alumnos
+          {t('mediador_alumnos.header')}
         </h1>
         <p className="text-sm text-white/60 mt-0.5">
           {loading
-            ? 'Cargando…'
-            : `${stats?.total ?? 0} alumnos sincronizados · última actualización ${fmtDate(stats?.lastUpdate ?? null)}`
+            ? t('mediador_alumnos.loading')
+            : t('mediador_alumnos.header_sub', { n: stats?.total ?? 0, date: fmtDate(stats?.lastUpdate ?? null) })
           }
         </p>
       </div>
@@ -148,27 +151,26 @@ export default function MediadorAlumnos() {
             <RefreshCw className="w-4 h-4 text-sage-dk" />
           </div>
           <p className="text-sm text-ink-soft leading-snug">
-            El censo permite que los alumnos identifiquen víctimas y agresores con autocompletado seguro,
-            sin que el centro tenga que escribir nombres manualmente.
+            {t('mediador_alumnos.info')}
           </p>
         </div>
 
         {/* Fuente del censo */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Fuente del censo
+            {t('mediador_alumnos.source_title')}
           </p>
           <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-cream flex items-center justify-center flex-shrink-0">
               <div className={`w-3.5 h-3.5 rounded-full shadow-sm ${stats?.lastUpdate ? 'bg-green-500' : 'bg-gray-300'}`} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink">Carga manual por CSV</p>
+              <p className="text-sm font-semibold text-ink">{t('mediador_alumnos.source_manual')}</p>
               <p className="text-xs text-muted">
                 {stats?.lastUpdate
-                  ? `Última carga: ${fmtDate(stats.lastUpdate)}`
-                  : 'Aún no se ha cargado ningún censo'}
-                {' · '}sin sincronización automática con el SIS
+                  ? t('mediador_alumnos.source_last', { date: fmtDate(stats.lastUpdate) })
+                  : t('mediador_alumnos.source_none')}
+                {' · '}{t('mediador_alumnos.source_no_sync')}
               </p>
             </div>
           </div>
@@ -177,7 +179,7 @@ export default function MediadorAlumnos() {
         {/* CSV manual */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Subir CSV
+            {t('mediador_alumnos.upload_csv')}
           </p>
           <input
             ref={fileRef}
@@ -203,13 +205,13 @@ export default function MediadorAlumnos() {
             {uploading ? (
               <>
                 <div className="w-7 h-7 border-2 border-mediador border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted">Procesando CSV…</p>
+                <p className="text-sm text-muted">{t('mediador_alumnos.processing')}</p>
               </>
             ) : (
               <>
                 <span className="text-4xl">📤</span>
-                <p className="text-sm font-semibold text-ink">Arrastra o pulsa para subir el listado</p>
-                <p className="text-xs text-muted">CSV con: nombre, apellidos, curso, grupo</p>
+                <p className="text-sm font-semibold text-ink">{t('mediador_alumnos.drop_hint')}</p>
+                <p className="text-xs text-muted">{t('mediador_alumnos.csv_columns')}</p>
               </>
             )}
           </div>
@@ -218,7 +220,7 @@ export default function MediadorAlumnos() {
         {/* Estadísticas del censo */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Estado del censo
+            {t('mediador_alumnos.status_title')}
           </p>
           {loading ? (
             <div className="bg-white rounded-2xl p-6 flex justify-center">

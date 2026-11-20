@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { dateLocale } from '@/lib/i18n'
 import { useNavigate } from 'react-router'
 import { Download, FileText, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
@@ -23,12 +24,12 @@ interface PendingReport {
 }
 
 const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'Ciberacoso', exclusion: 'Exclusión social', fisico: 'Violencia física',
-  verbal: 'Violencia verbal', sexual: 'Acoso sexual', otros: 'Otros',
+  ciberacoso: 'mediador_actas.cat_ciberacoso', exclusion: 'mediador_actas.cat_exclusion', fisico: 'mediador_actas.cat_fisico',
+  verbal: 'mediador_actas.cat_verbal', sexual: 'mediador_actas.cat_sexual', otros: 'mediador_actas.cat_otros',
 }
 
 function fmtDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('es-ES', {
+  return new Date(dateStr).toLocaleDateString(dateLocale(), {
     day: '2-digit', month: '2-digit', year: 'numeric',
   })
 }
@@ -106,7 +107,7 @@ export default function MediadorActas() {
         .createSignedUrl(acta.pdf_storage_path, 60)
 
       if (error || !data?.signedUrl) {
-        toast.error('No se pudo generar el enlace de descarga')
+        toast.error(t('mediador_actas.download_error'))
         return
       }
       const link = document.createElement('a')
@@ -206,7 +207,7 @@ export default function MediadorActas() {
                 const steps = r.previ_steps.length
                 const title = r.description
                   ? r.description.length > 60 ? r.description.slice(0, 58) + '…' : r.description
-                  : CAT_LABEL[r.category ?? ''] ?? 'Sin descripción'
+                  : t(CAT_LABEL[r.category ?? ''] ?? 'common.no_desc')
 
                 return (
                   <div key={r.id} className="bg-white rounded-2xl p-4 shadow-sm">

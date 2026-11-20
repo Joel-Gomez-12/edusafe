@@ -1,31 +1,34 @@
+import { useTranslation } from 'react-i18next'
+
 export default function AlumnoRecursos() {
+  const { t } = useTranslation()
   const recursos = [
     {
       emoji: '📞',
       bg: 'bg-red-100',
       title: '016 · 024',
-      desc: 'Conducta suicida y violencia · 24/7 · No queda registro en la factura',
+      desc: t('recursos.hotline_desc'),
       href: 'tel:016',
     },
     {
       emoji: '📱',
       bg: 'bg-green-100',
-      title: 'ANAR Niños y Adolescentes',
-      desc: '900 20 20 10 · Confidencial · 24/7',
+      title: t('recursos.anar_title'),
+      desc: t('recursos.anar_desc'),
       href: 'tel:900202010',
     },
     {
       emoji: '🛡️',
       bg: 'bg-gray-100',
-      title: 'Qué es el ciberacoso',
-      desc: 'Señales, ejemplos y cómo protegerte en redes',
+      title: t('recursos.cyber_title'),
+      desc: t('recursos.cyber_desc'),
       href: 'https://www.is4k.es/necesitas-saber/ciberacoso',
     },
     {
       emoji: '👨‍👩‍👧',
       bg: 'bg-alumno-lt',
-      title: 'Hablar con tu familia',
-      desc: 'Guía paso a paso para encontrar el momento',
+      title: t('recursos.family_title'),
+      desc: t('recursos.family_desc'),
       href: 'https://www.anar.org',
     },
   ]
@@ -34,8 +37,8 @@ export default function AlumnoRecursos() {
     <div className="flex flex-col min-h-svh bg-cream">
 
       <div className="bg-alumno px-5 pt-12 pb-5 rounded-b-3xl">
-        <h1 className="font-display text-2xl font-bold text-white">Recursos</h1>
-        <p className="text-sm text-white/60 mt-0.5">Información y ayuda fuera de la app</p>
+        <h1 className="font-display text-2xl font-bold text-white">{t('recursos.title')}</h1>
+        <p className="text-sm text-white/60 mt-0.5">{t('recursos.subtitle')}</p>
       </div>
 
       <div className="px-5 pt-5 flex flex-col gap-3">
@@ -44,7 +47,7 @@ export default function AlumnoRecursos() {
         <div className="bg-sage-lt rounded-2xl p-4 flex items-start gap-3">
           <span className="text-xl mt-0.5">💚</span>
           <p className="text-sm text-sage-dk leading-snug font-medium">
-            No estás solo. Lo que sientes es válido, y hay personas preparadas para ayudarte.
+            {t('recursos.banner')}
           </p>
         </div>
 

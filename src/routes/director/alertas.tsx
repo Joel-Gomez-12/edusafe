@@ -145,9 +145,9 @@ export default function DirectorAlertas() {
       const closePct = slaRate(closeCandidates, r => ['resuelto', 'archivado'].includes(r.status))
 
       setSlaItems([
-        { label: 'Respuesta crítica < 2h',   pct: critPct,  met: critPct  >= 90 },
-        { label: 'Respuesta general < 24h',  pct: genPct,   met: genPct   >= 90 },
-        { label: 'Cierre formal < 15 días',  pct: closePct, met: closePct >= 80 },
+        { label: 'director_alertas.sla_critical', pct: critPct,  met: critPct  >= 90 },
+        { label: 'director_alertas.sla_general',  pct: genPct,   met: genPct   >= 90 },
+        { label: 'director_alertas.sla_close',    pct: closePct, met: closePct >= 80 },
       ])
     } finally {
       setLoading(false)
@@ -160,8 +160,8 @@ export default function DirectorAlertas() {
       <div className="bg-director px-5 pt-12 pb-5">
         <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('director_alertas.title')}</h1>
         <p className="text-sm text-white/55 mt-0.5 leading-snug">
-          No verás el contenido de los chats.{' '}
-          Solo lo que requiere tu atención.
+          {t('director_alertas.privacy_1')}{' '}
+          {t('director_alertas.privacy_2')}
         </p>
       </div>
 
@@ -178,8 +178,8 @@ export default function DirectorAlertas() {
               <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex gap-3">
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-ink-soft leading-snug">
-                  <span className="font-semibold text-ink">Reincidencia detectada.</span>{' '}
-                  Un alumno aparece en 3+ reportes este mes.
+                  <span className="font-semibold text-ink">{t('director_alertas.recurrence_title')}</span>{' '}
+                  {t('director_alertas.recurrence_desc')}
                 </p>
               </div>
             )}
@@ -188,14 +188,14 @@ export default function DirectorAlertas() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[11px] font-bold tracking-widest text-muted uppercase">
-                  Ranking de reincidencia
+                  {t('director_alertas.ranking_title')}
                 </p>
-                <span className="text-xs font-medium text-primary">Privacidad</span>
+                <span className="text-xs font-medium text-primary">{t('director_alertas.privacy_tag')}</span>
               </div>
 
               {reincidentes.length === 0 ? (
                 <div className="bg-white rounded-2xl p-5 text-center shadow-sm">
-                  <p className="text-sm text-muted">Sin reincidentes este mes</p>
+                  <p className="text-sm text-muted">{t('director_alertas.no_recurrence')}</p>
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
@@ -231,7 +231,7 @@ export default function DirectorAlertas() {
             {/* ── Cumplimiento de plazos SLA ────────────────────────────────── */}
             <div>
               <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-                Cumplimiento de plazos
+                {t('director_alertas.sla_title')}
               </p>
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                 {slaItems.map((item, idx) => (
@@ -255,7 +255,7 @@ export default function DirectorAlertas() {
                     <span className={`text-sm flex-1 leading-snug ${
                       item.met ? 'line-through text-ink-soft/60' : 'text-ink'
                     }`}>
-                      {item.label}:{' '}
+                      {t(item.label)}:{' '}
                       <span className={`font-semibold not-italic ${
                         item.met ? 'text-ink-soft/60' : 'text-amber-600'
                       }`}>

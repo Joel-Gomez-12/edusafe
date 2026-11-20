@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Folder, LockKeyhole, Check, Shield } from 'lucide-react'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -37,32 +38,33 @@ function genMorId(caseCode: string, createdAt: string): string {
 }
 
 const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'Ciberacoso con amenazas',
-  sexual:     'Acoso sexual',
-  fisico:     'Violencia física',
-  verbal:     'Violencia verbal',
-  exclusion:  'Exclusión social',
-  otros:      'Incidente escolar',
+  ciberacoso: 'director_moriarty.cat_ciberacoso',
+  sexual:     'director_moriarty.cat_sexual',
+  fisico:     'director_moriarty.cat_fisico',
+  verbal:     'director_moriarty.cat_verbal',
+  exclusion:  'director_moriarty.cat_exclusion',
+  otros:      'director_moriarty.cat_otros',
 }
 
 function escaladoStatus(status: string): string {
-  if (status === 'derivado')         return 'En investigación GDT'
-  if (status === 'en_investigacion') return 'En investigación'
-  if (status === 'resuelto')         return 'Caso cerrado en EduSafe'
-  return 'Pendiente de orden judicial'
+  if (status === 'derivado')         return 'director_moriarty.st_gdt'
+  if (status === 'en_investigacion') return 'director_moriarty.st_investigating'
+  if (status === 'resuelto')         return 'director_moriarty.st_closed'
+  return 'director_moriarty.st_pending'
 }
 
 const PROTOCOL = [
-  'Solo el mediador puede iniciar el escalado',
-  'Dirección recibe notificación al instante',
-  'El anonimato del denunciante se mantiene',
-  'Audit log inalterable de la transferencia',
+  'director_moriarty.protocol_1',
+  'director_moriarty.protocol_2',
+  'director_moriarty.protocol_3',
+  'director_moriarty.protocol_4',
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DirectorMoriarty() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [expedients, setExpedients] = useState<Expedient[]>([])
   const [loading,    setLoading]    = useState(true)
 
@@ -109,13 +111,13 @@ export default function DirectorMoriarty() {
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0 pr-3">
             <p className="text-[10px] font-bold tracking-widest text-white/50 uppercase">
-              Cadena de custodia · Escalados
+              {t('director_moriarty.badge')}
             </p>
             <h1 className="font-display text-3xl font-bold text-white leading-tight mt-0.5">
-              Expedientes Moriarty
+              {t('director_moriarty.header')}
             </h1>
             <p className="text-sm text-white/55 mt-0.5 leading-snug">
-              Casos que han salido de EduSafe hacia investigación judicial
+              {t('director_moriarty.header_sub')}
             </p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0 mt-1">
@@ -130,16 +132,15 @@ export default function DirectorMoriarty() {
         <div className="bg-cream-lt border border-hairline rounded-2xl px-4 py-3.5 flex gap-3">
           <Shield className="w-4 h-4 text-muted flex-shrink-0 mt-0.5" />
           <p className="text-sm text-ink-soft leading-snug">
-            Una vez escalado, EduSafe ya no gestiona el caso.{' '}
-            <span className="font-semibold text-ink">Moriarty Bullying</span> garantiza la cadena de custodia y la
-            admisibilidad como prueba ante un juzgado.
+            {t('director_moriarty.info_1')}{' '}
+            <span className="font-semibold text-ink">Moriarty Bullying</span> {t('director_moriarty.info_2')}
           </p>
         </div>
 
         {/* ── Expedientes ──────────────────────────────────────────────────────── */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Expedientes activos en Moriarty
+            {t('director_moriarty.active_title')}
           </p>
 
           {loading ? (
@@ -149,8 +150,8 @@ export default function DirectorMoriarty() {
           ) : expedients.length === 0 ? (
             <div className="bg-white rounded-2xl p-6 text-center shadow-sm">
               <p className="text-3xl mb-2">⚖️</p>
-              <p className="text-sm font-medium text-ink">Sin expedientes escalados</p>
-              <p className="text-xs text-muted mt-1">Ningún caso ha sido derivado a judicial</p>
+              <p className="text-sm font-medium text-ink">{t('director_moriarty.empty_title')}</p>
+              <p className="text-xs text-muted mt-1">{t('director_moriarty.empty_desc')}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -166,12 +167,12 @@ export default function DirectorMoriarty() {
                         EduSafe #{exp.case_code} → {exp.morId}
                       </p>
                       <p className="text-xs text-muted mt-0.5">
-                        {CAT_LABEL[exp.category ?? ''] ?? 'Incidente escolar'}
+                        {t(CAT_LABEL[exp.category ?? ''] ?? 'director_moriarty.cat_otros')}
                         {' · '}
                         <span className={
                           exp.status === 'derivado' ? 'text-orange-500 font-medium' : ''
                         }>
-                          {escaladoStatus(exp.status)}
+                          {t(escaladoStatus(exp.status))}
                         </span>
                       </p>
                     </div>
@@ -201,7 +202,7 @@ export default function DirectorMoriarty() {
         {/* ── Protocolo de escalado ─────────────────────────────────────────── */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            Protocolo de escalado
+            {t('director_moriarty.protocol_title')}
           </p>
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
             {PROTOCOL.map((item, idx) => (
@@ -215,7 +216,7 @@ export default function DirectorMoriarty() {
                   <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                 </div>
                 <span className="text-sm line-through text-ink-soft/60 flex-1 leading-snug">
-                  {item}
+                  {t(item)}
                 </span>
               </div>
             ))}

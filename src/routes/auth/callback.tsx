@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { supabase } from '@/lib/edusafe/supabase'
 import type { UserRole } from '@/lib/edusafe/types'
@@ -20,6 +21,7 @@ function roleToPath(role: string | undefined): string {
 
 export default function AuthCallback() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const handled = useRef(false)
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function AuthCallback() {
     <div className="min-h-screen bg-cream flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-ink/60">Verificando acceso...</p>
+        <p className="text-sm text-ink/60">{t('auth.checking_access')}</p>
       </div>
     </div>
   )

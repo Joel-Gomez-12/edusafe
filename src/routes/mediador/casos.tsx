@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { dateLocale } from '@/lib/i18n'
 import { useNavigate } from 'react-router'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +29,7 @@ const ACTIVE_STATUSES:  ReportStatus[] = ['nuevo', 'asignado', 'en_investigacion
 const CLOSED_STATUSES:  ReportStatus[] = ['resuelto', 'derivado', 'archivado']
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(dateLocale(), { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────

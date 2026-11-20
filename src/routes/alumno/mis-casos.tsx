@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import i18n from '@/lib/i18n'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
 import { getDeviceToken } from '@/lib/edusafe/device'
 
@@ -15,29 +17,31 @@ interface StoredCase {
   severity: string
 }
 
-function statusLabel(status: string) {
-  const map: Record<string, { label: string; cls: string }> = {
-    nuevo:           { label: 'NUEVO',        cls: 'bg-gray-100 text-gray-500' },
-    asignado:        { label: 'EN REVISIÓN',  cls: 'bg-orange-100 text-orange-600' },
-    en_investigacion:{ label: 'EN REVISIÓN',  cls: 'bg-orange-100 text-orange-600' },
-    resuelto:        { label: 'CERRADO',      cls: 'bg-green-100 text-green-600' },
-    derivado:        { label: 'DERIVADO',     cls: 'bg-blue-100 text-blue-600' },
-    archivado:       { label: 'ARCHIVADO',    cls: 'bg-gray-100 text-gray-400' },
+// Estado del caso → claves de traducción (etiqueta de la insignia y texto bajo la tarjeta)
+function statusLabel(status: string): { labelKey: string | null; subKey: string; cls: string } {
+  const map: Record<string, { labelKey: string; subKey: string; cls: string }> = {
+    nuevo:           { labelKey: 'mis_casos.status_new',      subKey: 'mis_casos.sub_new',    cls: 'bg-gray-100 text-gray-500' },
+    asignado:        { labelKey: 'mis_casos.status_review',   subKey: 'mis_casos.sub_review', cls: 'bg-orange-100 text-orange-600' },
+    en_investigacion:{ labelKey: 'mis_casos.status_review',   subKey: 'mis_casos.sub_review', cls: 'bg-orange-100 text-orange-600' },
+    resuelto:        { labelKey: 'mis_casos.status_closed',   subKey: 'mis_casos.sub_closed', cls: 'bg-green-100 text-green-600' },
+    derivado:        { labelKey: 'mis_casos.status_referred', subKey: 'mis_casos.sub_new',    cls: 'bg-blue-100 text-blue-600' },
+    archivado:       { labelKey: 'mis_casos.status_archived', subKey: 'mis_casos.sub_new',    cls: 'bg-gray-100 text-gray-400' },
   }
-  return map[status] ?? { label: status.toUpperCase(), cls: 'bg-gray-100 text-gray-500' }
+  return map[status] ?? { labelKey: null, subKey: 'mis_casos.sub_new', cls: 'bg-gray-100 text-gray-500' }
 }
 
 
 function timeAgo(isoDate: string): string {
   const diff = (Date.now() - new Date(isoDate).getTime()) / 1000
-  if (diff < 3600)   return 'hace un momento'
-  if (diff < 86400)  return `hace ${Math.floor(diff / 3600)}h`
-  if (diff < 604800) return `hace ${Math.floor(diff / 86400)} día${Math.floor(diff / 86400) > 1 ? 's' : ''}`
-  return `hace ${Math.floor(diff / 604800)} semana${Math.floor(diff / 604800) > 1 ? 's' : ''}`
+  if (diff < 3600)   return i18n.t('mis_casos.time_moment')
+  if (diff < 86400)  return i18n.t('mis_casos.time_hours', { count: Math.floor(diff / 3600) })
+  if (diff < 604800) return i18n.t('mis_casos.time_days',  { count: Math.floor(diff / 86400) })
+  return i18n.t('mis_casos.time_weeks', { count: Math.floor(diff / 604800) })
 }
 
 export default function AlumnoMisCasos() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [cases, setCases] = useState<StoredCase[]>([])
   const [emojiKey, setEmojiKey] = useState<string[]>([])
   const [activeCaseCode, setActiveCaseCode] = useState<string>('')
@@ -58,8 +62,8 @@ export default function AlumnoMisCasos() {
   }
 
   async function openCase() {
-    if (emojiKey.length !== 3) { toast.error('Selecciona 3 emojis'); return }
-    if (!activeCaseCode) { toast.error('Selecciona un caso primero'); return }
+    if (emojiKey.length !== 3) { toast.error(t('mis_casos.select_3')); return }
+    if (!activeCaseCode) { toast.error(t('mis_casos.select_first')); return }
     setAccessing(true)
     try {
       // Cada caso guarda el token con el que se creó (casos antiguos pueden tener uno distinto)
@@ -80,7 +84,7 @@ export default function AlumnoMisCasos() {
       }))
       navigate(`/alumno/chat/${res.report_id}`)
     } catch {
-      toast.error('Llave incorrecta. Prueba de nuevo.')
+      toast.error(t('mis_casos.wrong_key'))
     } finally {
       setAccessing(false)
     }
@@ -92,10 +96,10 @@ export default function AlumnoMisCasos() {
       {/* Header */}
       <div className="bg-alumno px-5 pt-12 pb-5 rounded-b-3xl">
         <p className="text-[10px] font-semibold tracking-widest text-white/60 uppercase mb-1">
-          Mis reportes
+          {t('mis_casos.badge')}
         </p>
-        <h1 className="font-display text-2xl font-bold text-white">Tus casos</h1>
-        <p className="text-sm text-white/60 mt-0.5">Solo se ven en este dispositivo</p>
+        <h1 className="font-display text-2xl font-bold text-white">{t('mis_casos.title')}</h1>
+        <p className="text-sm text-white/60 mt-0.5">{t('mis_casos.subtitle')}</p>
       </div>
 
       <div className="px-5 pt-5 flex-1 flex flex-col gap-5">
@@ -104,7 +108,7 @@ export default function AlumnoMisCasos() {
         {cases.length > 0 && (
           <div className="flex flex-col gap-3">
             {cases.map(c => {
-              const { label, cls } = statusLabel(c.status)
+              const { labelKey, subKey, cls } = statusLabel(c.status)
               return (
                 <button
                   key={c.case_code}
@@ -117,14 +121,14 @@ export default function AlumnoMisCasos() {
                   <div className="flex items-start justify-between mb-1">
                     <p className="font-bold text-alumno text-base">{c.case_code}</p>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
-                      ● {label}
+                      ● {labelKey ? t(labelKey) : c.status.toUpperCase()}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 mb-1">
                     {c.emojis.map((e, i) => <span key={i} className="text-base">{e}</span>)}
                   </div>
                   <p className="text-xs text-ink/40">
-                    {label === 'EN REVISIÓN' ? 'En revisión' : label === 'CERRADO' ? 'Resuelto' : 'Nuevo'} · {timeAgo(c.created_at)}
+                    {t(subKey)} · {timeAgo(c.created_at)}
                   </p>
                 </button>
               )
@@ -135,13 +139,13 @@ export default function AlumnoMisCasos() {
         {/* Sección acceso con código */}
         <div>
           <p className="text-[10px] font-semibold tracking-widest text-ink/40 uppercase mb-3">
-            Acceder a un caso con código
+            {t('mis_casos.section_access')}
           </p>
 
           <div className="bg-white rounded-3xl p-5 shadow-sm">
-            <h3 className="font-display font-bold text-ink text-lg mb-1">Introduce tu llave</h3>
+            <h3 className="font-display font-bold text-ink text-lg mb-1">{t('mis_casos.intro_title')}</h3>
             <p className="text-sm text-ink/60 mb-4 leading-snug">
-              Toca tus 3 emojis en el mismo orden que cuando creaste el reporte.
+              {t('mis_casos.intro_subtitle')}
             </p>
 
             {/* Slots seleccionados */}
@@ -186,7 +190,7 @@ export default function AlumnoMisCasos() {
                 onClick={() => setEmojiKey([])}
                 className="flex-1 py-3 rounded-2xl border border-hairline text-ink text-sm font-medium active:scale-95 transition-base"
               >
-                Reiniciar
+                {t('mis_casos.reset')}
               </button>
               <button
                 onClick={openCase}
@@ -195,7 +199,7 @@ export default function AlumnoMisCasos() {
               >
                 {accessing
                   ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : 'Abrir caso'
+                  : t('mis_casos.open_case')
                 }
               </button>
             </div>
@@ -205,7 +209,7 @@ export default function AlumnoMisCasos() {
         {cases.length === 0 && (
           <div className="text-center py-8 text-ink/30">
             <p className="text-3xl mb-2">📂</p>
-            <p className="text-sm">Aún no tienes casos en este dispositivo</p>
+            <p className="text-sm">{t('mis_casos.empty')}</p>
           </div>
         )}
       </div>

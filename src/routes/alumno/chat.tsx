@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { dateLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router'
 import { ArrowLeft, Send } from 'lucide-react'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
@@ -21,6 +23,7 @@ interface ActiveChat {
 export default function AlumnoChat() {
   const { caseId } = useParams<{ caseId: string }>()
   const navigate   = useNavigate()
+  const { t } = useTranslation()
   const bottomRef  = useRef<HTMLDivElement>(null)
 
   const [messages,  setMessages]  = useState<ChatMsg[]>([])
@@ -70,7 +73,7 @@ export default function AlumnoChat() {
         prev.length === fresh.length && prev.every((m, i) => m.id === fresh[i].id) ? prev : fresh)
     } catch {
       if (poll) return   // un fallo puntual de red en el refresco no expulsa del chat
-      toast.error('No se pudo cargar el chat.')
+      toast.error(t('chat.error_load'))
       navigate('/alumno/mis-casos')
     } finally {
       setLoading(false)
@@ -102,7 +105,7 @@ export default function AlumnoChat() {
       })
       setMessages(res.messages ?? [])
     } catch {
-      toast.error('Error al enviar el mensaje')
+      toast.error(t('chat.error_send'))
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id))
     } finally {
       setSending(false)
@@ -110,7 +113,7 @@ export default function AlumnoChat() {
   }
 
   function formatTime(iso: string) {
-    return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    return new Date(iso).toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -122,8 +125,8 @@ export default function AlumnoChat() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Caso {caseCode}</p>
-          <p className="text-white font-semibold text-sm">Chat con el mediador</p>
+          <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">{t('chat.case_n', { code: caseCode })}</p>
+          <p className="text-white font-semibold text-sm">{t('chat.title')}</p>
         </div>
         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
           <span className="text-sm">🛡️</span>
@@ -133,7 +136,7 @@ export default function AlumnoChat() {
       {/* Aviso privacidad */}
       <div className="px-4 py-2.5 bg-sage-lt border-b border-hairline">
         <p className="text-xs text-sage-dk text-center">
-          🔒 El mediador ve tu caso pero no sabe quién eres. Tu identidad está protegida.
+          {t('chat.privacy')}
         </p>
       </div>
 
@@ -146,7 +149,7 @@ export default function AlumnoChat() {
         ) : messages.length === 0 ? (
           <div className="text-center py-12 text-ink/30">
             <p className="text-3xl mb-2">💬</p>
-            <p className="text-sm">Aún no hay mensajes.<br />El mediador responderá en menos de 24h.</p>
+            <p className="text-sm">{t('chat.empty_1')}<br />{t('chat.empty_2')}</p>
           </div>
         ) : (
           messages.map(msg => (
@@ -158,7 +161,7 @@ export default function AlumnoChat() {
                     : 'bg-white text-ink rounded-bl-sm shadow-sm'
                 }`}>
                   {msg.sender_type === 'mediador' && (
-                    <p className="text-[10px] font-semibold text-ink/40 mb-1 uppercase tracking-wider">Mediador</p>
+                    <p className="text-[10px] font-semibold text-ink/40 mb-1 uppercase tracking-wider">{t('chat.mediator_label')}</p>
                   )}
                   {msg.content_encrypted}
                 </div>
@@ -179,7 +182,7 @@ export default function AlumnoChat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-          placeholder="Escribe aquí..."
+          placeholder={t('chat.placeholder')}
           className="flex-1 bg-transparent text-sm focus:outline-none text-ink placeholder:text-ink/30"
         />
         <button

@@ -28,7 +28,7 @@ export default function OnboardingPage() {
         setCentros(res.centros)
         if (res.centros.length === 1) setCentroId(res.centros[0].id)
       })
-      .catch(() => toast.error('No se pudo cargar la lista de centros'))
+      .catch(() => toast.error(t('onboarding.error_centros')))
       .finally(() => setLoadingC(false))
   }, [])
 
@@ -42,12 +42,12 @@ export default function OnboardingPage() {
       })
       // Refrescar sesión para que el JWT hook inyecte el nuevo rol
       const { data, error } = await supabase.auth.refreshSession()
-      if (error || !data.session) throw new Error('No se pudo refrescar la sesión')
+      if (error || !data.session) throw new Error(t('onboarding.error_session'))
 
       toast.success(t('onboarding.success'))
       navigate(role === 'director' ? '/director' : '/mediador', { replace: true })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al crear el perfil')
+      toast.error(err instanceof Error ? err.message : t('onboarding.error_create'))
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export default function OnboardingPage() {
           </div>
           <div>
             <h1 className="text-xl font-display text-primary-dk leading-tight">EduSafe</h1>
-            <p className="text-xs text-muted">Configura tu perfil</p>
+            <p className="text-xs text-muted">{t('onboarding.header_sub')}</p>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function OnboardingPage() {
                       : 'border-hairline bg-cream-lt text-ink hover:border-primary/40'
                   }`}
                 >
-                  {r === 'mediador' ? '🛡️ Mediador/a' : '📊 Director/a'}
+                  {r === 'mediador' ? `🛡️ ${t('auth.role_mediator')}` : `📊 ${t('auth.role_director')}`}
                 </button>
               ))}
             </div>

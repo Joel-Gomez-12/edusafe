@@ -129,7 +129,7 @@ export default function MediadorInbox() {
             if (!grouped[row.student_id]) {
               grouped[row.student_id] = {
                 count: 0,
-                name:  row.students?.full_name ?? 'Alumno desconocido',
+                name:  row.students?.full_name ?? t('mediador_inbox.unknown_student'),
                 curso: `${row.students?.curso ?? ''}${row.students?.grupo ?? ''}`,
               }
             }
@@ -162,7 +162,7 @@ export default function MediadorInbox() {
             </p>
             <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_inbox.title')}</h1>
             <p className="text-sm text-white/60 mt-0.5">
-              {activeCount} abierto{activeCount !== 1 ? 's' : ''} · {criticalCount} crítico{criticalCount !== 1 ? 's' : ''}
+              {t('mediador_inbox.open_count', { count: activeCount })} · {t('mediador_inbox.critical_count', { count: criticalCount })}
             </p>
           </div>
           <button className="w-11 h-11 rounded-2xl bg-amber-400 flex items-center justify-center shadow-md mt-1 active:scale-95 transition-base">
@@ -178,12 +178,12 @@ export default function MediadorInbox() {
             </div>
             <div>
               <p className="text-sm font-bold text-white leading-snug">
-                Alerta de IA · Reincidencia
+                {t('mediador_inbox.ai_alert_title')}
               </p>
               <p className="text-xs text-white/75 mt-0.5 leading-snug">
-                {aiAlert.count} reportes independientes mencionan a{' '}
+                {t('mediador_inbox.ai_alert_1', { count: aiAlert.count })}{' '}
                 <span className="font-semibold">{aiAlert.studentName}</span>{' '}
-                ({aiAlert.curso}) en los últimos 14 días. Recomendamos derivar a Dirección.
+                ({aiAlert.curso}) {t('mediador_inbox.ai_alert_2')}
               </p>
             </div>
           </div>
@@ -194,9 +194,9 @@ export default function MediadorInbox() {
       <div className="flex-1 bg-cream px-5 pt-5 pb-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase">
-            Casos activos
+            {t('mediador_inbox.active_cases')}
           </p>
-          <button className="text-xs text-primary font-semibold">Filtrar</button>
+          <button className="text-xs text-primary font-semibold">{t('mediador_inbox.filter')}</button>
         </div>
 
         {loading ? (

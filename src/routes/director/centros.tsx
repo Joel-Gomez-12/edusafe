@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { dateLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/edusafe/supabase'
 import { useAuth } from '@/context/AuthContext'
 
@@ -40,13 +42,13 @@ function calcAvgDays(reports: { status: string; created_at: string; closed_at: s
 
 function getStatus(score: number): CentroStats['status'] {
   if (score >= 5) return {
-    label: 'Requiere atención', textColor: 'text-orange-600', borderColor: 'border-orange-400',
+    label: 'director_centros.status_attention', textColor: 'text-orange-600', borderColor: 'border-orange-400',
   }
   if (score >= 2) return {
-    label: 'Normal', textColor: 'text-amber-600', borderColor: 'border-amber-400',
+    label: 'director_centros.status_normal', textColor: 'text-amber-600', borderColor: 'border-amber-400',
   }
   return {
-    label: 'Tranquilo', textColor: 'text-sage-dk', borderColor: 'border-sage',
+    label: 'director_centros.status_calm', textColor: 'text-sage-dk', borderColor: 'border-sage',
   }
 }
 
@@ -54,6 +56,7 @@ function getStatus(score: number): CentroStats['status'] {
 
 export default function DirectorCentros() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [centros,  setCentros]  = useState<CentroStats[]>([])
   const [loading,  setLoading]  = useState(true)
 
@@ -136,10 +139,10 @@ export default function DirectorCentros() {
       {/* ── Cabecera ──────────────────────────────────────────────────────────── */}
       <div className="bg-director px-5 pt-12 pb-5">
         <h1 className="font-display text-3xl font-bold text-white leading-tight">
-          Mis centros
+          {t('director_centros.header')}
         </h1>
         <p className="text-sm text-white/55 mt-0.5">
-          {loading ? 'Cargando…' : `${centros.length} centros gestionados por la titularidad`}
+          {loading ? t('director_centros.loading') : t('director_centros.header_sub', { count: centros.length })}
         </p>
       </div>
 
@@ -152,7 +155,7 @@ export default function DirectorCentros() {
         ) : centros.length === 0 ? (
           <div className="text-center py-12 text-muted">
             <p className="text-4xl mb-3">🏫</p>
-            <p className="font-display text-lg text-ink">Sin centros asignados</p>
+            <p className="font-display text-lg text-ink">{t('director_centros.empty')}</p>
           </div>
         ) : (
           <>
@@ -165,8 +168,8 @@ export default function DirectorCentros() {
                 >
                   <p className="text-base font-semibold text-ink">{c.nombre}</p>
                   <p className="text-xs text-muted mt-0.5 leading-snug">
-                    {c.studentCount.toLocaleString('es-ES')} alumnos · {c.reports} reportes ·{' '}
-                    <span className={`font-medium ${c.status.textColor}`}>{c.status.label}</span>
+                    {t('director_centros.row_stats', { students: c.studentCount.toLocaleString(dateLocale()), reports: c.reports })} ·{' '}
+                    <span className={`font-medium ${c.status.textColor}`}>{t(c.status.label)}</span>
                   </p>
                 </div>
               ))}
@@ -176,19 +179,19 @@ export default function DirectorCentros() {
             {showComparativa && (
               <div>
                 <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-                  Comparativa rápida
+                  {t('director_centros.compare_title')}
                 </p>
                 <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
                   <div className="flex items-center justify-between px-4 py-3.5">
-                    <span className="text-sm text-ink">Reportes</span>
+                    <span className="text-sm text-ink">{t('director_centros.compare_reports')}</span>
                     <span className="text-sm font-semibold text-ink">
                       {centros.map(c => c.incidenceRate.toFixed(1)).join(' · ')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3.5 border-t border-hairline">
-                    <span className="text-sm text-ink">Tiempo medio</span>
+                    <span className="text-sm text-ink">{t('director_centros.compare_time')}</span>
                     <span className="text-sm font-semibold text-ink">
-                      {centros.map(c => `${c.avgDays > 0 ? c.avgDays : '—'}${c.avgDays > 0 ? 'd' : ''}`).join(' · ')}
+                      {centros.map(c => `${c.avgDays > 0 ? c.avgDays : '—'}${c.avgDays > 0 ? t('director_centros.days_suffix') : ''}`).join(' · ')}
                     </span>
                   </div>
                 </div>

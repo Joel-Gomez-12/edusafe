@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { dateLocale } from '@/lib/i18n'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router'
 import { ArrowLeft, AlertTriangle, MessageCircle, Building2, ClipboardCheck, Download, ExternalLink, X } from 'lucide-react'
 import { supabase, callEdgeFunction } from '@/lib/edusafe/supabase'
@@ -16,49 +18,44 @@ interface VerifyResult {
 }
 
 const VERIFY_CFG = {
-  auth:         { label: 'Auténtica',       cls: 'bg-green-100 text-green-700 border-green-200',  icon: '✓' },
-  possible_ai:  { label: 'Posible IA',      cls: 'bg-amber-100 text-amber-700 border-amber-200',  icon: '⚠' },
-  undetermined: { label: 'No determinable', cls: 'bg-gray-100 text-gray-500 border-gray-200',     icon: '—' },
+  auth:         { label: 'reporte.authentic',    cls: 'bg-green-100 text-green-700 border-green-200',  icon: '✓' },
+  possible_ai:  { label: 'reporte.possible_ai',  cls: 'bg-amber-100 text-amber-700 border-amber-200',  icon: '⚠' },
+  undetermined: { label: 'reporte.undetermined', cls: 'bg-gray-100 text-gray-500 border-gray-200',     icon: '—' },
 } as const
 
-const SEV_LABEL: Record<SeverityLevel, string> = {
-  critica: 'CRÍTICO', alta: 'ALTO', media: 'MEDIO', baja: 'BAJO',
-}
-const SEV_TITLE: Record<SeverityLevel, string> = {
-  critica: 'crítico', alta: 'alto', media: 'medio', baja: 'bajo',
-}
+// Las tablas siguientes guardan claves de traducción; el texto se resuelve con t() al pintar.
 const CAT_LABEL: Record<string, string> = {
-  ciberacoso: 'CIBERACOSO', exclusion: 'EXCLUSIÓN', fisico: 'FÍSICO',
-  verbal: 'VERBAL', sexual: 'SEXUAL', otros: 'OTROS',
+  ciberacoso: 'mediador_caso.cat_ciberacoso', exclusion: 'mediador_caso.cat_exclusion', fisico: 'mediador_caso.cat_fisico',
+  verbal: 'mediador_caso.cat_verbal', sexual: 'mediador_caso.cat_sexual', otros: 'mediador_caso.cat_otros',
 }
 const AI_DESC: Record<string, string> = {
-  ciberacoso: 'Detectadas amenazas explícitas. Cruzado con reincidencia (3 reportes previos).',
-  exclusion:  'Detectado patrón sistemático de exclusión social.',
-  fisico:     'Indicadores de violencia física reiterada.',
-  verbal:     'Lenguaje denigrante reiterado identificado.',
-  sexual:     'Contenido de carácter sexual detectado. Derivación prioritaria.',
-  otros:      'Clasificación general. Revisión manual recomendada.',
+  ciberacoso: 'mediador_caso.ai_ciberacoso',
+  exclusion:  'mediador_caso.ai_exclusion',
+  fisico:     'mediador_caso.ai_fisico',
+  verbal:     'mediador_caso.ai_verbal',
+  sexual:     'mediador_caso.ai_sexual',
+  otros:      'mediador_caso.ai_otros',
 }
 const STATUS_EVENT: Record<ReportStatus, { title: string; desc: string }> = {
-  nuevo:            { title: 'Caso abierto',              desc: 'Pendiente de asignación a mediador/a.' },
-  asignado:         { title: 'Caso asignado',             desc: 'Mediador/a asignado/a. Inicio de investigación.' },
-  en_investigacion: { title: 'En contacto con denunciante', desc: 'Chat anónimo activo. Pendiente: entrevista presencial con víctima.' },
-  resuelto:         { title: 'Caso cerrado',              desc: 'Caso resuelto y archivado correctamente.' },
-  derivado:         { title: 'Derivado a Dirección',       desc: 'Caso trasladado a Dirección para seguimiento.' },
-  archivado:        { title: 'Caso archivado',            desc: 'Archivado sin resolución explícita.' },
+  nuevo:            { title: 'mediador_caso.ev_nuevo_title',            desc: 'mediador_caso.ev_nuevo_desc' },
+  asignado:         { title: 'mediador_caso.ev_asignado_title',         desc: 'mediador_caso.ev_asignado_desc' },
+  en_investigacion: { title: 'mediador_caso.ev_en_investigacion_title', desc: 'mediador_caso.ev_en_investigacion_desc' },
+  resuelto:         { title: 'mediador_caso.ev_resuelto_title',         desc: 'mediador_caso.ev_resuelto_desc' },
+  derivado:         { title: 'mediador_caso.ev_derivado_title',         desc: 'mediador_caso.ev_derivado_desc' },
+  archivado:        { title: 'mediador_caso.ev_archivado_title',        desc: 'mediador_caso.ev_archivado_desc' },
 }
 
 const PREVI_STEPS = [
-  'Recepción y clasificación del caso',
-  'Contacto con denunciante',
-  'Entrevista con víctima',
-  'Comunicación a familias',
-  'Generación de acta final',
+  'mediador_caso.step_1',
+  'mediador_caso.step_2',
+  'mediador_caso.step_3',
+  'mediador_caso.step_4',
+  'mediador_caso.step_5',
 ]
 
 function fmtDateTime(dateStr: string): string {
   const d = new Date(dateStr)
-  return `${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} · ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+  return `${d.toLocaleDateString(dateLocale(), { day: '2-digit', month: '2-digit', year: 'numeric' })} · ${d.toLocaleTimeString(dateLocale(), { hour: '2-digit', minute: '2-digit' })}`
 }
 
 function initials(fullName: string, style: 'firstLast' | 'firstLast2'): string {
@@ -98,6 +95,7 @@ export default function MediadorCaso() {
   const { caseId }  = useParams<{ caseId: string }>()
   const navigate    = useNavigate()
   const { staffId } = useAuth()
+  const { t } = useTranslation()
 
   const [report,        setReport]        = useState<ReportDetail | null>(null)
   const [claiming,      setClaiming]      = useState(false)
@@ -167,8 +165,8 @@ export default function MediadorCaso() {
   function requireMine(): boolean {
     if (isMine) return true
     toast.error(isUnassigned
-      ? 'Toma el caso antes de gestionarlo'
-      : 'Este caso está asignado a otro mediador')
+      ? t('mediador_caso.need_claim')
+      : t('mediador_caso.other_mediator_error'))
     return false
   }
 
@@ -183,11 +181,11 @@ export default function MediadorCaso() {
       .select('id')
     setClaiming(false)
     if (error || !data || data.length === 0) {
-      toast.error('No se pudo tomar el caso. Puede que otro mediador lo haya tomado ya.')
+      toast.error(t('mediador_caso.claim_error'))
       return
     }
     setReport(r => r ? { ...r, assigned_mediator: staffId, status: nextStatus } : r)
-    toast.success('Caso asignado. Ya puedes gestionarlo.')
+    toast.success(t('mediador_caso.claim_ok'))
   }
 
   async function toggleStep(idx: number) {
@@ -197,7 +195,7 @@ export default function MediadorCaso() {
     const next = prev.includes(idx) ? prev.filter(s => s !== idx) : [...prev, idx].sort((a, b) => a - b)
     const { error } = await supabase.from('reports').update({ previ_steps: next }).eq('id', report.id)
     if (!error) setReport(r => r ? { ...r, previ_steps: next } : r)
-    else toast.error('No se pudo actualizar el protocolo')
+    else toast.error(t('mediador_caso.step_error'))
     setSavingStep(null)
   }
 
@@ -209,7 +207,7 @@ export default function MediadorCaso() {
       .eq('id', report.id)
     if (!error) {
       setReport(r => r ? { ...r, flagged_as_crime: true, status: 'derivado' } : r)
-      toast.success('Caso marcado como posible delito y derivado')
+      toast.success(t('mediador_caso.crime_ok'))
     }
   }
 
@@ -221,7 +219,7 @@ export default function MediadorCaso() {
       .eq('id', report.id)
     if (!error) {
       setReport(r => r ? { ...r, status: 'derivado' } : r)
-      toast.success('Caso derivado a Dirección')
+      toast.success(t('mediador_caso.derive_ok'))
     }
   }
 
@@ -232,7 +230,7 @@ export default function MediadorCaso() {
       .update({ status: 'resuelto', closed_at: new Date().toISOString() })
       .eq('id', report.id)
     if (!error) {
-      toast.success('Caso cerrado correctamente')
+      toast.success(t('mediador_caso.close_success'))
       navigate('/mediador')
     }
   }
@@ -247,7 +245,7 @@ export default function MediadorCaso() {
       setActaResult(res)
       setReport(r => r ? { ...r, status: 'resuelto' } : r)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error generando el acta')
+      toast.error(err instanceof Error ? err.message : t('mediador_caso.acta_error'))
       setCloseModal('form')
     }
   }
@@ -279,29 +277,29 @@ export default function MediadorCaso() {
   const timeline = [
     {
       ts:      fmtDateTime(report.created_at),
-      title:   'Reporte recibido',
-      desc:    `Alumno/a anónimo/a inicia caso.${evidence.length > 0 ? ` ${evidence.length} captura${evidence.length > 1 ? 's' : ''} adjunta${evidence.length > 1 ? 's' : ''}.` : ''}`,
+      title:   t('mediador_caso.tl_received_title'),
+      desc:    t('mediador_caso.tl_received_desc') + (evidence.length > 0 ? ' ' + t('mediador_caso.tl_captures', { count: evidence.length }) : ''),
       current: false,
     },
     ...(report.severity_level ? [{
       ts:      fmtDateTime(plusMinutes(report.created_at, 9)),
-      title:   `IA clasifica como ${SEV_LABEL[report.severity_level]}`,
-      desc:    AI_DESC[report.category ?? ''] ?? 'Clasificación automática completada.',
+      title:   t('mediador_caso.tl_ai_title', { level: t(`severity.${report.severity_level}`) }),
+      desc:    t(AI_DESC[report.category ?? ''] ?? 'mediador_caso.ai_default'),
       current: false,
     }] : []),
     {
-      ts:      'ahora',
-      title:   STATUS_EVENT[report.status].title,
-      desc:    STATUS_EVENT[report.status].desc,
+      ts:      t('mediador_caso.now'),
+      title:   t(STATUS_EVENT[report.status].title),
+      desc:    t(STATUS_EVENT[report.status].desc),
       current: true,
     },
   ]
 
   const victimLine = victim?.student
-    ? `Víctima: ${initials(victim.student.full_name, 'firstLast')} (${victim.student.curso}º${victim.student.grupo})`
+    ? `${t('mediador_caso.victim')}: ${initials(victim.student.full_name, 'firstLast')} (${victim.student.curso}º${victim.student.grupo})`
     : ''
   const aggrLine = aggressor?.student
-    ? `Agresor: ${initials(aggressor.student.full_name, 'firstLast2')} (${aggressor.student.curso}º${aggressor.student.grupo})`
+    ? `${t('mediador_caso.aggressor')}: ${initials(aggressor.student.full_name, 'firstLast2')} (${aggressor.student.curso}º${aggressor.student.grupo})`
     : ''
 
   return (
@@ -310,7 +308,7 @@ export default function MediadorCaso() {
       <div className="bg-mediador px-5 pt-12 pb-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[11px] font-semibold tracking-widest text-white/50 uppercase">
-            #{report.case_code} · {CAT_LABEL[report.category ?? ''] ?? 'CASO'}
+            #{report.case_code} · {t(CAT_LABEL[report.category ?? ''] ?? 'mediador_caso.cat_default')}
           </p>
           <button
             onClick={() => navigate(-1)}
@@ -320,7 +318,7 @@ export default function MediadorCaso() {
           </button>
         </div>
         <h1 className="font-display text-2xl font-bold text-white leading-tight mb-1">
-          Caso {report.severity_level ? SEV_TITLE[report.severity_level] : 'activo'}
+          {t(`mediador_caso.title_${report.severity_level ?? 'activo'}`)}
         </h1>
         {(victimLine || aggrLine) && (
           <p className="text-sm text-white/65 leading-snug">
@@ -336,28 +334,28 @@ export default function MediadorCaso() {
         {isUnassigned && (
           <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-ink">Este caso no está asignado</p>
-              <p className="text-xs text-muted mt-0.5">Tómalo para marcar el protocolo, chatear y cerrarlo.</p>
+              <p className="text-sm font-semibold text-ink">{t('mediador_caso.unassigned_title')}</p>
+              <p className="text-xs text-muted mt-0.5">{t('mediador_caso.unassigned_desc')}</p>
             </div>
             <button
               onClick={claimCase}
               disabled={claiming || !staffId}
               className="px-4 py-2.5 rounded-xl bg-mediador text-white text-sm font-semibold disabled:opacity-50 active:scale-95 transition-base flex-shrink-0"
             >
-              {claiming ? 'Asignando…' : 'Tomar caso →'}
+              {claiming ? t('mediador_caso.claiming') : t('mediador_caso.claim')}
             </button>
           </div>
         )}
         {!isUnassigned && !isMine && (
           <div className="bg-white rounded-2xl p-4 shadow-sm mb-5">
-            <p className="text-sm font-semibold text-ink">Asignado a otro mediador</p>
-            <p className="text-xs text-muted mt-0.5">Puedes consultarlo, pero solo quien lo lleva puede modificarlo.</p>
+            <p className="text-sm font-semibold text-ink">{t('mediador_caso.other_mediator_title')}</p>
+            <p className="text-xs text-muted mt-0.5">{t('mediador_caso.other_mediator_desc')}</p>
           </div>
         )}
 
         {/* Línea de tiempo */}
         <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-          Línea de tiempo del caso
+          {t('mediador_caso.timeline_title')}
         </p>
         <div className="relative pl-7 flex flex-col gap-0">
           {/* Línea vertical */}
@@ -382,17 +380,17 @@ export default function MediadorCaso() {
         {(report.text_verification || evidence.length > 0) && (
           <>
             <p className="text-[11px] font-bold tracking-widest text-muted uppercase mt-1 mb-3">
-              Evidencias verificadas
+              {t('mediador_caso.evidence_title')}
             </p>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm mb-4">
               {/* Relato del alumno */}
               {report.text_verification && (
               <div className="flex items-center justify-between px-4 py-3.5">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ink">Relato del alumno</p>
+                  <p className="text-sm font-medium text-ink">{t('mediador_caso.student_account')}</p>
                   {report.text_verification.provider !== 'none' && (
                     <p className="text-xs text-muted mt-0.5">
-                      Confianza: {Math.round(report.text_verification.confidence * 100)}% · {report.text_verification.provider}
+                      {t('mediador_caso.confidence')}: {Math.round(report.text_verification.confidence * 100)}% · {report.text_verification.provider}
                     </p>
                   )}
                 </div>
@@ -400,7 +398,7 @@ export default function MediadorCaso() {
                   const cfg = VERIFY_CFG[report.text_verification.status]
                   return (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
-                      <span>{cfg.icon}</span>{cfg.label}
+                      <span>{cfg.icon}</span>{t(cfg.label)}
                     </span>
                   )
                 })()}
@@ -414,19 +412,19 @@ export default function MediadorCaso() {
                   <div key={ev.id} className="flex items-center gap-3 px-4 py-3 border-t border-hairline first:border-t-0">
                     {ev.url ? (
                       <a href={ev.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-                        <img src={ev.url} alt={`Captura ${i + 1}`} className="w-14 h-14 rounded-xl object-cover border border-hairline" />
+                        <img src={ev.url} alt={t('mediador_caso.capture_n', { n: i + 1 })} className="w-14 h-14 rounded-xl object-cover border border-hairline" />
                       </a>
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-cream border border-hairline flex items-center justify-center text-xl flex-shrink-0">📷</div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-ink">Captura {i + 1}</p>
+                      <p className="text-sm font-medium text-ink">{t('mediador_caso.capture_n', { n: i + 1 })}</p>
                       <p className="text-xs text-muted mt-0.5">
-                        {ev.url ? 'Toca la imagen para ampliarla' : 'Vista previa no disponible'}
+                        {ev.url ? t('mediador_caso.tap_to_enlarge') : t('mediador_caso.no_preview')}
                       </p>
                     </div>
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
-                      <span>{cfg.icon}</span>{cfg.label}
+                      <span>{cfg.icon}</span>{t(cfg.label)}
                     </span>
                   </div>
                 )
@@ -435,7 +433,7 @@ export default function MediadorCaso() {
               {/* Nota aclaratoria */}
               <div className="px-4 py-2.5 border-t border-hairline bg-cream/50">
                 <p className="text-xs text-muted leading-snug">
-                  La verificación es orientativa y no determina la validez legal del caso. Un "Posible IA" no descarta que el hecho sea real.
+                  {t('mediador_caso.evidence_note')}
                 </p>
               </div>
             </div>
@@ -445,7 +443,7 @@ export default function MediadorCaso() {
         {/* Protocolo PREVI */}
         <div className="flex items-center justify-between mt-1 mb-3">
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase">
-            Protocolo legal
+            {t('mediador_caso.protocol_title')}
           </p>
           <span className="text-xs font-bold text-primary">
             {done.length}/{PREVI_STEPS.length}
@@ -484,7 +482,7 @@ export default function MediadorCaso() {
                     ? 'text-primary font-medium'
                     : 'text-ink'
                 }`}>
-                  {step}
+                  {t(step)}
                 </span>
               </button>
             )
@@ -499,14 +497,14 @@ export default function MediadorCaso() {
             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border border-hairline bg-white text-sm font-semibold text-ink shadow-sm disabled:opacity-40 active:scale-[0.98] transition-base"
           >
             <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-            Posible delito
+            {t('mediador_caso.possible_crime')}
           </button>
           <button
             onClick={() => navigate(`/mediador/chat/${report.id}`)}
             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-mediador text-white text-sm font-semibold shadow-sm active:scale-[0.98] transition-base"
           >
             <MessageCircle className="w-4 h-4 flex-shrink-0" />
-            Abrir chat
+            {t('mediador_caso.open_chat')}
           </button>
           <button
             onClick={deriveToDirector}
@@ -514,7 +512,7 @@ export default function MediadorCaso() {
             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl border border-hairline bg-white text-sm font-semibold text-ink shadow-sm disabled:opacity-40 active:scale-[0.98] transition-base"
           >
             <Building2 className="w-4 h-4 flex-shrink-0" />
-            Derivar a Dirección
+            {t('mediador_caso.derive')}
           </button>
           <button
             onClick={() => { if (requireMine()) setCloseModal('form') }}
@@ -522,7 +520,7 @@ export default function MediadorCaso() {
             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-sage text-white text-sm font-semibold shadow-sm disabled:opacity-40 active:scale-[0.98] transition-base"
           >
             <ClipboardCheck className="w-4 h-4 flex-shrink-0" />
-            Cerrar caso
+            {t('mediador_caso.close_case')}
           </button>
         </div>
       </div>
@@ -543,7 +541,7 @@ export default function MediadorCaso() {
             {(closeModal === 'form' || closeModal === 'generating') && !actaResult && (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display text-lg font-bold text-ink">Cerrar caso</h2>
+                  <h2 className="font-display text-lg font-bold text-ink">{t('mediador_caso.close_case')}</h2>
                   <button
                     onClick={() => setCloseModal('hidden')}
                     className="w-8 h-8 rounded-full bg-cream flex items-center justify-center active:bg-hairline transition-base"
@@ -553,12 +551,12 @@ export default function MediadorCaso() {
                 </div>
 
                 <label className="text-xs font-bold tracking-widest text-muted uppercase block mb-2">
-                  Conclusiones (opcional)
+                  {t('mediador_caso.conclusions_label')}
                 </label>
                 <textarea
                   value={conclusiones}
                   onChange={e => setConclusiones(e.target.value)}
-                  placeholder="Describe el resultado de la mediación, acuerdos alcanzados y seguimiento previsto..."
+                  placeholder={t('mediador_caso.conclusions_placeholder')}
                   rows={4}
                   disabled={closeModal === 'generating'}
                   className="w-full px-4 py-3 rounded-2xl border border-hairline bg-cream text-sm text-ink placeholder:text-muted focus:outline-none focus:border-mediador resize-none disabled:opacity-50"
@@ -573,12 +571,12 @@ export default function MediadorCaso() {
                     {closeModal === 'generating' ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Generando acta…
+                        {t('mediador_caso.generating')}
                       </>
                     ) : (
                       <>
                         <ClipboardCheck className="w-4 h-4" />
-                        Generar acta y cerrar
+                        {t('mediador_caso.generate_acta')}
                       </>
                     )}
                   </button>
@@ -587,7 +585,7 @@ export default function MediadorCaso() {
                     disabled={closeModal === 'generating'}
                     className="w-full py-3 text-sm font-medium text-muted disabled:opacity-40"
                   >
-                    Solo cerrar sin acta
+                    {t('mediador_caso.close_only')}
                   </button>
                 </div>
               </>
@@ -600,20 +598,20 @@ export default function MediadorCaso() {
                   <div className="w-14 h-14 bg-sage/15 rounded-full flex items-center justify-center mx-auto mb-3">
                     <ClipboardCheck className="w-7 h-7 text-sage" />
                   </div>
-                  <h2 className="font-display text-lg font-bold text-ink">Acta generada</h2>
-                  <p className="text-sm text-muted mt-1">Caso cerrado y acta firmada digitalmente</p>
+                  <h2 className="font-display text-lg font-bold text-ink">{t('mediador_caso.acta_success_title')}</h2>
+                  <p className="text-sm text-muted mt-1">{t('mediador_caso.acta_success_sub')}</p>
                 </div>
 
                 {/* CSV code */}
                 <div className="bg-cream rounded-2xl px-5 py-4 text-center mb-4">
                   <p className="text-xs font-bold tracking-widest text-muted uppercase mb-1">
-                    Código de verificación (CSV)
+                    {t('mediador_caso.csv_label')}
                   </p>
                   <p className="font-mono text-2xl font-bold text-ink tracking-widest">
                     {actaResult.csv_code}
                   </p>
                   <p className="text-xs text-muted mt-1">
-                    Cualquier parte puede verificar la autenticidad con este código
+                    {t('mediador_caso.csv_hint')}
                   </p>
                 </div>
 
@@ -623,7 +621,7 @@ export default function MediadorCaso() {
                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border border-hairline bg-white text-sm font-semibold text-ink active:scale-[0.98] transition-base shadow-sm"
                   >
                     <Download className="w-4 h-4 text-mediador" />
-                    Descargar PDF
+                    {t('mediador_caso.download_pdf')}
                   </button>
                   <a
                     href={actaResult.verify_url}
@@ -632,7 +630,7 @@ export default function MediadorCaso() {
                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border border-hairline bg-white text-sm font-semibold text-ink active:scale-[0.98] transition-base shadow-sm"
                   >
                     <ExternalLink className="w-4 h-4 text-mediador" />
-                    Verificar
+                    {t('mediador_caso.verify')}
                   </a>
                 </div>
 
@@ -640,7 +638,7 @@ export default function MediadorCaso() {
                   onClick={() => navigate('/mediador/informes')}
                   className="w-full py-3 text-sm font-semibold text-primary"
                 >
-                  Ver en Informes →
+                  {t('mediador_caso.view_reports')}
                 </button>
               </>
             )}
