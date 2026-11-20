@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router'
 import { ArrowLeft, AlertTriangle, MessageCircle, Building2, ClipboardCheck, Download, ExternalLink, X } from 'lucide-react'
 import { supabase, callEdgeFunction } from '@/lib/edusafe/supabase'
 import type { GenerateActaResponse } from '@/lib/edusafe/types'
+import { useAuth } from '@/context/AuthContext'
 import { toast } from 'sonner'
 
 type SeverityLevel = 'critica' | 'alta' | 'media' | 'baja'
@@ -80,6 +81,7 @@ interface ReportDetail {
   previ_steps: number[]
   flagged_as_crime: boolean
   text_verification: VerifyResult | null
+  assigned_mediator: string | null
 }
 interface EvidenceItem {
   id: string
@@ -95,8 +97,10 @@ interface Involved {
 export default function MediadorCaso() {
   const { caseId }  = useParams<{ caseId: string }>()
   const navigate    = useNavigate()
+  const { staffId } = useAuth()
 
   const [report,        setReport]        = useState<ReportDetail | null>(null)
+  const [claiming,      setClaiming]      = useState(false)
   const [involved,      setInvolved]      = useState<Involved[]>([])
   const [evidence,      setEvidence]      = useState<EvidenceItem[]>([])
   const [loading,       setLoading]       = useState(true)
@@ -114,7 +118,7 @@ export default function MediadorCaso() {
     try {
       const { data: r } = await supabase
         .from('reports')
-        .select('id, case_code, category, severity_level, status, description, zone, created_at, last_activity_at, previ_steps, flagged_as_crime, text_verification')
+        .select('id, case_code, category, severity_level, status, description, zone, created_at, last_activity_at, previ_steps, flagged_as_crime, text_verification, assigned_mediator')
         .eq('id', id)
         .single()
       if (!r) return
@@ -153,8 +157,41 @@ export default function MediadorCaso() {
     }
   }
 
+  // ── Asignación ────────────────────────────────────────────────────────────
+  // RLS solo deja modificar un caso a su mediador asignado. Sin esta comprobación
+  // el error era genérico (caso sin asignar) o, peor, la pantalla daba por guardado
+  // un cambio que la base había ignorado (caso de otro mediador).
+  const isUnassigned = !!report && !report.assigned_mediator
+  const isMine       = !!report && !!staffId && report.assigned_mediator === staffId
+
+  function requireMine(): boolean {
+    if (isMine) return true
+    toast.error(isUnassigned
+      ? 'Toma el caso antes de gestionarlo'
+      : 'Este caso está asignado a otro mediador')
+    return false
+  }
+
+  async function claimCase() {
+    if (!report || !staffId || claiming) return
+    setClaiming(true)
+    const nextStatus = report.status === 'nuevo' ? 'asignado' : report.status
+    const { data, error } = await supabase
+      .from('reports')
+      .update({ assigned_mediator: staffId, status: nextStatus })
+      .eq('id', report.id)
+      .select('id')
+    setClaiming(false)
+    if (error || !data || data.length === 0) {
+      toast.error('No se pudo tomar el caso. Puede que otro mediador lo haya tomado ya.')
+      return
+    }
+    setReport(r => r ? { ...r, assigned_mediator: staffId, status: nextStatus } : r)
+    toast.success('Caso asignado. Ya puedes gestionarlo.')
+  }
+
   async function toggleStep(idx: number) {
-    if (!report) return
+    if (!report || !requireMine()) return
     setSavingStep(idx)
     const prev = report.previ_steps
     const next = prev.includes(idx) ? prev.filter(s => s !== idx) : [...prev, idx].sort((a, b) => a - b)
@@ -165,7 +202,7 @@ export default function MediadorCaso() {
   }
 
   async function flagAsCrime() {
-    if (!report || report.flagged_as_crime) return
+    if (!report || report.flagged_as_crime || !requireMine()) return
     const { error } = await supabase
       .from('reports')
       .update({ flagged_as_crime: true, status: 'derivado' })
@@ -177,7 +214,7 @@ export default function MediadorCaso() {
   }
 
   async function deriveToDirector() {
-    if (!report || report.status === 'derivado') return
+    if (!report || report.status === 'derivado' || !requireMine()) return
     const { error } = await supabase
       .from('reports')
       .update({ status: 'derivado' })
@@ -189,7 +226,7 @@ export default function MediadorCaso() {
   }
 
   async function closeCase() {
-    if (!report || report.status === 'resuelto') return
+    if (!report || report.status === 'resuelto' || !requireMine()) return
     const { error } = await supabase
       .from('reports')
       .update({ status: 'resuelto', closed_at: new Date().toISOString() })
@@ -294,6 +331,29 @@ export default function MediadorCaso() {
 
       {/* Cuerpo scrollable */}
       <div className="flex-1 overflow-auto bg-cream px-5 pt-5 pb-4">
+
+        {/* Aviso de asignación */}
+        {isUnassigned && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-ink">Este caso no está asignado</p>
+              <p className="text-xs text-muted mt-0.5">Tómalo para marcar el protocolo, chatear y cerrarlo.</p>
+            </div>
+            <button
+              onClick={claimCase}
+              disabled={claiming || !staffId}
+              className="px-4 py-2.5 rounded-xl bg-mediador text-white text-sm font-semibold disabled:opacity-50 active:scale-95 transition-base flex-shrink-0"
+            >
+              {claiming ? 'Asignando…' : 'Tomar caso →'}
+            </button>
+          </div>
+        )}
+        {!isUnassigned && !isMine && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm mb-5">
+            <p className="text-sm font-semibold text-ink">Asignado a otro mediador</p>
+            <p className="text-xs text-muted mt-0.5">Puedes consultarlo, pero solo quien lo lleva puede modificarlo.</p>
+          </div>
+        )}
 
         {/* Línea de tiempo */}
         <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
@@ -457,7 +517,7 @@ export default function MediadorCaso() {
             Derivar a Dirección
           </button>
           <button
-            onClick={() => setCloseModal('form')}
+            onClick={() => { if (requireMine()) setCloseModal('form') }}
             disabled={report.status === 'resuelto' || report.status === 'archivado'}
             className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-sage text-white text-sm font-semibold shadow-sm disabled:opacity-40 active:scale-[0.98] transition-base"
           >
