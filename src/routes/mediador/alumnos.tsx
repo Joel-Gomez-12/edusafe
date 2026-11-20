@@ -159,12 +159,17 @@ export default function MediadorAlumnos() {
             Fuente del censo
           </p>
           <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
-              <div className="w-3.5 h-3.5 rounded-full bg-green-500 shadow-sm" />
+            <div className="w-10 h-10 rounded-xl bg-cream flex items-center justify-center flex-shrink-0">
+              <div className={`w-3.5 h-3.5 rounded-full shadow-sm ${stats?.lastUpdate ? 'bg-green-500' : 'bg-gray-300'}`} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink">Alexia · sincronización API</p>
-              <p className="text-xs text-muted">Conectado · sincroniza cada noche a las 02:00</p>
+              <p className="text-sm font-semibold text-ink">Carga manual por CSV</p>
+              <p className="text-xs text-muted">
+                {stats?.lastUpdate
+                  ? `Última carga: ${fmtDate(stats.lastUpdate)}`
+                  : 'Aún no se ha cargado ningún censo'}
+                {' · '}sin sincronización automática con el SIS
+              </p>
             </div>
           </div>
         </div>
@@ -172,7 +177,7 @@ export default function MediadorAlumnos() {
         {/* CSV manual */}
         <div>
           <p className="text-[11px] font-bold tracking-widest text-muted uppercase mb-3">
-            O subir CSV manualmente
+            Subir CSV
           </p>
           <input
             ref={fileRef}
