@@ -27,17 +27,18 @@ export async function callEdgeFunction<T>(
   options: {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
     body?: unknown
+    formData?: FormData            // multipart (subida de archivos); sustituye a body
     headers?: Record<string, string>
     sessionToken?: string
     centroSlug?: string
   } = {}
 ): Promise<T> {
-  const { method = 'POST', body, headers = {}, sessionToken, centroSlug } = options
+  const { method = 'POST', body, formData, headers = {}, sessionToken, centroSlug } = options
 
-  const reqHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...headers,
-  }
+  // En multipart el navegador pone el Content-Type (con el boundary)
+  const reqHeaders: Record<string, string> = formData
+    ? { ...headers }
+    : { 'Content-Type': 'application/json', ...headers }
 
   if (sessionToken) {
     reqHeaders['Authorization'] = `Bearer ${sessionToken}`
@@ -53,7 +54,7 @@ export async function callEdgeFunction<T>(
   const response = await fetch(edgeFunctionUrl(name), {
     method,
     headers: reqHeaders,
-    body: body ? JSON.stringify(body) : undefined,
+    body: formData ?? (body ? JSON.stringify(body) : undefined),
   })
 
   if (!response.ok) {

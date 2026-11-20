@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { callEdgeFunction } from '@/lib/edusafe/supabase'
+import { getDeviceToken } from '@/lib/edusafe/device'
 
 const EMOJIS = ['☀️','🌈','🎈','🎮','⚽','🐶','🐱','🦊','🐼','🦁','🍕','🍦','🌸','🌻','🚀','🎵','📚','⚡','🍌','✨']
 
@@ -25,7 +26,7 @@ export default function AlumnoLlave() {
     if (emojiKey.length !== 3) { toast.error('Elige exactamente 3 emojis'); return }
     setSaving(true)
     try {
-      const deviceToken = localStorage.getItem('edusafe_device_token') ?? ''
+      const deviceToken = getDeviceToken()
 
       // Guardar hash en Supabase
       await callEdgeFunction('reports-set-emoji', {
