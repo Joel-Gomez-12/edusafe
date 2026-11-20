@@ -81,7 +81,7 @@ export default function DirectorMoriarty() {
       if (!dir) return
 
       const { data: cases } = await supabase
-        .from('reports')
+        .from('reports_director')
         .select('id, case_code, category, description, status, created_at')
         .eq('tenant_id', dir.tenant_id)
         .eq('flagged_as_crime', true)

@@ -3,13 +3,14 @@
 // Proveedor primario: Hive AI (RGPD-compliant, sin almacenamiento de imágenes en plan enterprise).
 // Si HIVE_API_KEY no está configurada devuelve status='undetermined' para no bloquear el flujo.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 
-const supabaseAdmin = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-)
+// Esta función es pública (la usa el alumno anónimo), así que NO escribe en la base:
+// antes aceptaba un report_id y sobrescribía reports.text_verification de cualquier
+// reporte. El resultado lo adjunta el cliente al crear el reporte (reports-create).
+// Los límites evitan que se use como pasarela gratuita hacia el proveedor.
+const MAX_TEXT_CHARS   = 5_000
+const MAX_IMAGE_BASE64 = 11_000_000   // ~8 MB de imagen
 
 type VerifyType   = 'image' | 'text'
 type VerifyStatus = 'auth' | 'possible_ai' | 'undetermined'
@@ -17,7 +18,6 @@ type VerifyStatus = 'auth' | 'possible_ai' | 'undetermined'
 interface VerifyBody {
   type:         VerifyType
   payload:      string      // base64 (con o sin data URL prefix) para imágenes, texto plano para texto
-  report_id?:   string      // si se pasa para texto, guarda en reports.text_verification
 }
 
 interface VerifyResult {
@@ -33,9 +33,15 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body: VerifyBody = await req.json()
-    const { type, payload, report_id } = body
+    const { type, payload } = body
 
     if (!type || !payload) return errorResponse('type y payload son obligatorios', 400)
+    if (type !== 'image' && type !== 'text') return errorResponse('type debe ser image o text', 400)
+    if (typeof payload !== 'string') return errorResponse('payload inválido', 400)
+    if (payload.length > (type === 'text' ? MAX_TEXT_CHARS : MAX_IMAGE_BASE64)) {
+      // Demasiado grande para analizar: no se bloquea el flujo del alumno
+      return jsonResponse({ status: 'undetermined', confidence: 0, provider: 'none' })
+    }
 
     const hiveKey = Deno.env.get('HIVE_API_KEY')
 
@@ -48,14 +54,6 @@ Deno.serve(async (req: Request) => {
       result = type === 'image'
         ? await verifyImageHive(payload, hiveKey)
         : await verifyTextHive(payload, hiveKey)
-    }
-
-    // Persistir en DB si corresponde
-    if (report_id && type === 'text') {
-      await supabaseAdmin
-        .from('reports')
-        .update({ text_verification: result })
-        .eq('id', report_id)
     }
 
     return jsonResponse(result)
