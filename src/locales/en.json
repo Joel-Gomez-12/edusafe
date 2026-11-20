@@ -227,7 +227,10 @@
     "ai_alert_1_other": "{{count}} independent reports mention",
     "ai_alert_2": "in the last 14 days. We recommend referring it to the head teacher.",
     "active_cases": "Active cases",
-    "filter": "Filter"
+    "filter": "Filter",
+    "role_badge": "Mediator",
+    "new_messages_one": "{{count}} new message",
+    "new_messages_other": "{{count}} new messages"
   },
   "mediador_casos": {
     "title": "All cases",
@@ -383,7 +386,8 @@
     "cat_verbal": "Verbal violence",
     "cat_sexual": "Sexual harassment",
     "cat_otros": "Other",
-    "download_error": "Could not create the download link"
+    "download_error": "Could not create the download link",
+    "row_title": "Report"
   },
   "mediador_alumnos": {
     "title": "Students",
@@ -465,7 +469,10 @@
     "zone_clase": "Class {{name}}",
     "zone_gimnasio": "Gym",
     "zone_comedor": "Canteen",
-    "heatmap_note": "* Cyberbullying outside school is recorded too"
+    "heatmap_note": "* Cyberbullying outside school is recorded too",
+    "role_badge": "Head teacher",
+    "index_basis_one": "Index based on {{count}} report this month",
+    "index_basis_other": "Index based on {{count}} reports this month"
   },
   "director_alertas": {
     "title": "Alerts",

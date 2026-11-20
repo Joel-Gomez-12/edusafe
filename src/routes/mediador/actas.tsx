@@ -162,10 +162,10 @@ export default function MediadorActas() {
                 {/* Texto */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-ink">
-                    Acta · #{acta.case_code}
+                    {t('mediador_actas.row_title')} · #{acta.case_code}
                   </p>
                   <p className="text-xs text-muted truncate">
-                    {fmtDate(acta.generated_at)} · CSV: {shortCsv(acta.csv_code)} · Firmada
+                    {t('mediador_actas.closed_on', { date: fmtDate(acta.generated_at), code: shortCsv(acta.csv_code) })}
                   </p>
                 </div>
 
