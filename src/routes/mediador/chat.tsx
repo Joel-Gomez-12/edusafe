@@ -219,7 +219,7 @@ export default function MediadorChat() {
 
   if (loading || !report) {
     return (
-      <div className="flex items-center justify-center min-h-svh bg-cream">
+      <div className="app-shell app-shell-staff flex items-center justify-center min-h-svh bg-cream">
         <div className="w-6 h-6 border-2 border-mediador border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -230,7 +230,7 @@ export default function MediadorChat() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-svh bg-cream">
+    <div className="app-shell app-shell-staff flex flex-col h-svh bg-cream">
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="bg-mediador px-4 pt-10 pb-4 flex items-start gap-3">

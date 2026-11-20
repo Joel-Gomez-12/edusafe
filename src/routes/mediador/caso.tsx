@@ -535,7 +535,7 @@ export default function MediadorCaso() {
           />
 
           {/* Bottom sheet */}
-          <div className="relative w-full bg-white rounded-t-3xl px-5 pt-5 pb-8 shadow-2xl">
+          <div className="relative w-full max-w-[760px] mx-auto bg-white rounded-t-3xl px-5 pt-5 pb-8 shadow-2xl">
 
             {/* ── Formulario ── */}
             {(closeModal === 'form' || closeModal === 'generating') && !actaResult && (

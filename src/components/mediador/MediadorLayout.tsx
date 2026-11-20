@@ -15,17 +15,17 @@ export default function MediadorLayout() {
   ]
 
   return (
-    <div className="min-h-svh bg-cream">
+    <div className="app-shell app-shell-staff min-h-svh bg-cream">
       <div className="pb-16">
         <Outlet />
       </div>
 
       {/* Selector de idioma flotante */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 app-right z-50">
         <LanguageSwitcher />
       </div>
 
-      <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-hairline h-16 flex z-40">
+      <nav className="fixed bottom-0 app-fixed-x bg-white border-t border-hairline h-16 flex z-40">
         {tabs.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
