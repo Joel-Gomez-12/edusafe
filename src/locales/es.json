@@ -227,7 +227,10 @@
     "ai_alert_1_other": "{{count}} reportes independientes mencionan a",
     "ai_alert_2": "en los últimos 14 días. Recomendamos derivar a Dirección.",
     "active_cases": "Casos activos",
-    "filter": "Filtrar"
+    "filter": "Filtrar",
+    "role_badge": "Mediadora",
+    "new_messages_one": "{{count}} mensaje nuevo",
+    "new_messages_other": "{{count}} mensajes nuevos"
   },
   "mediador_casos": {
     "title": "Todos los casos",
@@ -383,7 +386,8 @@
     "cat_verbal": "Violencia verbal",
     "cat_sexual": "Acoso sexual",
     "cat_otros": "Otros",
-    "download_error": "No se pudo generar el enlace de descarga"
+    "download_error": "No se pudo generar el enlace de descarga",
+    "row_title": "Acta"
   },
   "mediador_alumnos": {
     "title": "Alumnos",
@@ -465,7 +469,10 @@
     "zone_clase": "Clase {{name}}",
     "zone_gimnasio": "Gimnasio",
     "zone_comedor": "Comedor",
-    "heatmap_note": "* El ciberacoso fuera del centro también se registra"
+    "heatmap_note": "* El ciberacoso fuera del centro también se registra",
+    "role_badge": "Dirección",
+    "index_basis_one": "Índice basado en {{count}} reporte este mes",
+    "index_basis_other": "Índice basado en {{count}} reportes este mes"
   },
   "director_alertas": {
     "title": "Alertas",

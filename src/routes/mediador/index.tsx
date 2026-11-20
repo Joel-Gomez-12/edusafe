@@ -158,7 +158,7 @@ export default function MediadorInbox() {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-semibold tracking-widest text-white/50 uppercase mb-1">
-              Mediadora · {mediadorName || user?.email?.split('@')[0]}
+              {t('mediador_inbox.role_badge')} · {mediadorName || user?.email?.split('@')[0]}
             </p>
             <h1 className="font-display text-3xl font-bold text-white leading-tight">{t('mediador_inbox.title')}</h1>
             <p className="text-sm text-white/60 mt-0.5">
@@ -261,7 +261,7 @@ export default function MediadorInbox() {
                     <span className="text-xs text-muted">{timeAgo(report.last_activity_at)}</span>
                     {report.unreadCount > 0 ? (
                       <span className="text-xs font-semibold text-primary">
-                        {report.unreadCount} mensaje{report.unreadCount > 1 ? 's' : ''} nuevo{report.unreadCount > 1 ? 's' : ''}
+                        {t('mediador_inbox.new_messages', { count: report.unreadCount })}
                       </span>
                     ) : (
                       <span className={`text-xs ${st.cls}`}>{st.label}</span>

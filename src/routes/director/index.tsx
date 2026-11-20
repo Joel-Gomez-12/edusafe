@@ -231,7 +231,7 @@ export default function DirectorDashboard() {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-bold tracking-widest text-white/55 uppercase">
-              Dirección · {dirData?.full_name ?? '…'}
+              {t('director_dashboard.role_badge')} · {dirData?.full_name ?? '…'}
             </p>
             <h1 className="font-display text-3xl font-bold text-white leading-tight mt-0.5">
               {t('director_dashboard.header')}
@@ -281,7 +281,7 @@ export default function DirectorDashboard() {
                 <div>
                   <p className="text-sm font-semibold text-ink">{t('director_dashboard.termometro_title')}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    Índice basado en {kpis?.totalMsg ?? 0} reportes este mes
+                    {t('director_dashboard.index_basis', { count: kpis?.totalMsg ?? 0 })}
                   </p>
                 </div>
                 <span className={`text-3xl font-bold font-display leading-none ml-3 ${scoreText}`}>
