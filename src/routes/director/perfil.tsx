@@ -73,7 +73,7 @@ export default function DirectorPerfil() {
           .eq('active', true),
         // Zonas distintas utilizadas en reportes del tenant
         supabase
-          .from('reports')
+          .from('reports_director')
           .select('zone')
           .eq('tenant_id', dir.tenant_id)
           .not('zone', 'is', null),

@@ -87,40 +87,23 @@ export default function MediadorChat() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `report_id=eq.${caseId}` },
-        (payload) => {
-          const m = payload.new as { id: string; sender_type: SenderType; content_encrypted: string; created_at: string }
-          setMessages(prev => {
-            if (prev.some(x => x.id === m.id)) return prev
-            return [...prev, { id: m.id, sender_type: m.sender_type, content: m.content_encrypted, created_at: m.created_at }]
-          })
-          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+        () => {
+          // El aviso en tiempo real trae el mensaje cifrado: solo se usa como señal
+          // para volver a pedir la conversación descifrada.
+          fetchMessages().then(() =>
+            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50))
         },
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [caseId])
 
-  // Polling cada 10s como red de seguridad para mensajes del alumno
+  // Sondeo cada 15s como red de seguridad si el tiempo real no llega
   useEffect(() => {
     if (!caseId) return
-    const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from('messages')
-        .select('id, sender_type, content_encrypted, created_at')
-        .eq('report_id', caseId)
-        .order('created_at', { ascending: true })
-      if (!data) return
-      const fresh = data.map(m => ({
-        id:          m.id,
-        sender_type: m.sender_type as SenderType,
-        content:     m.content_encrypted,
-        created_at:  m.created_at,
-      }))
-      setMessages(prev => {
-        if (prev.length === fresh.length && prev.every((m, i) => m.id === fresh[i].id)) return prev
-        return fresh
-      })
-    }, 10_000)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchMessages()
+    }, 15_000)
     return () => clearInterval(interval)
   }, [caseId])
 
@@ -155,21 +138,21 @@ export default function MediadorChat() {
     }
   }
 
+  // Los mensajes están cifrados en la base. get_case_messages los devuelve descifrados
+  // solo al mediador que lleva el caso, y deja constancia de la lectura en el audit_log.
   async function fetchMessages() {
-    const { data } = await supabase
-      .from('messages')
-      .select('id, sender_type, content_encrypted, created_at')
-      .eq('report_id', caseId!)
-      .order('created_at', { ascending: true })
+    const { data, error } = await supabase.rpc('get_case_messages', { p_report_id: caseId! })
+    if (error || !data) return
 
-    setMessages(
-      (data ?? []).map(m => ({
-        id:          m.id,
-        sender_type: m.sender_type as SenderType,
-        content:     m.content_encrypted,
-        created_at:  m.created_at,
-      }))
-    )
+    const fresh = (data as { id: string; sender_type: string; content: string; created_at: string }[]).map(m => ({
+      id:          m.id,
+      sender_type: m.sender_type as SenderType,
+      content:     m.content,
+      created_at:  m.created_at,
+    }))
+    // No volver a pintar si no hay cambios (evita saltos en cada sondeo)
+    setMessages(prev =>
+      prev.length === fresh.length && prev.every((m, i) => m.id === fresh[i].id) ? prev : fresh)
   }
 
   // ── Tomar caso ─────────────────────────────────────────────────────────────

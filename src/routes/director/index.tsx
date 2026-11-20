@@ -130,11 +130,11 @@ export default function DirectorDashboard() {
         { data: prev },
       ] = await Promise.all([
         supabase.from('centros').select('nombre').eq('id', dir.centro_id).single(),
-        supabase.from('reports')
+        supabase.from('reports_director')
           .select('id, severity_level, status, zone, created_at, closed_at, case_code')
           .eq('centro_id', dir.centro_id)
           .gte('created_at', monthStart),
-        supabase.from('reports')
+        supabase.from('reports_director')
           .select('id, status, closed_at, created_at')
           .eq('centro_id', dir.centro_id)
           .gte('created_at', prevStart)

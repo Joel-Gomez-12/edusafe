@@ -3,7 +3,7 @@
 // Requiere: X-Centro-Slug header
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
+import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts'
 
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -56,7 +56,7 @@ Deno.serve(async (req: Request) => {
     const body: CreateReportBody = await req.json()
     const {
       device_token, emoji_pattern, category,
-      zone, zones, description, who_affected,
+      zone, zones, description,
       perpetrator_student_id, involved, text_verification,
     } = body
 
@@ -82,38 +82,55 @@ Deno.serve(async (req: Request) => {
 
     // 4. Generar case_code único: 2 letras del slug + 4 dígitos
     const prefix = centroSlug.slice(0, 2).toUpperCase().replace(/[^A-Z]/g, 'X')
-    const suffix = Math.floor(1000 + Math.random() * 9000)
-    const case_code = `${prefix}-${suffix}`
 
-    // 5. INSERT en reports
-    const { data: report, error: reportErr } = await supabaseAdmin
-      .from('reports')
-      .insert({
-        tenant_id: centro.tenant_id,
-        centro_id: centro.id,
-        case_code,
-        device_token,
-        emoji_pattern_hash: emojiHash,
-        category: category ?? 'otros',
-        zone: zoneStr,
-        description,
-        status: 'nuevo',
-        text_verification: text_verification ?? null,
-      })
-      .select('id, case_code')
-      .single()
+    // 5. INSERT en reports. El código es aleatorio (4 dígitos) y único en la tabla:
+    //    si coincide con uno existente se reintenta con otro en vez de fallar.
+    let report: { id: string; case_code: string } | null = null
+    let case_code = ''
+    for (let attempt = 0; attempt < 6 && !report; attempt++) {
+      const digits = attempt < 4 ? 4 : 5
+      const min    = 10 ** (digits - 1)
+      case_code    = `${prefix}-${Math.floor(min + Math.random() * 9 * min)}`
 
-    if (reportErr) {
-      console.error('Error insertando reporte:', reportErr)
-      return errorResponse('Error creando el reporte', 500)
+      const { data, error: reportErr } = await supabaseAdmin
+        .from('reports')
+        .insert({
+          tenant_id: centro.tenant_id,
+          centro_id: centro.id,
+          case_code,
+          device_token,
+          emoji_pattern_hash: emojiHash,
+          category: category ?? 'otros',
+          zone: zoneStr,
+          description,
+          status: 'nuevo',
+          text_verification: sanitizeVerification(text_verification),
+        })
+        .select('id, case_code')
+        .single()
+
+      if (!reportErr) { report = data; break }
+      if (reportErr.code !== '23505') {          // 23505 = unique_violation
+        console.error('Error insertando reporte:', reportErr)
+        return errorResponse('Error creando el reporte', 500)
+      }
     }
+    if (!report) return errorResponse('Error creando el reporte', 500)
 
     // 6. INSERT en report_involved
     const involvedRows: { report_id: string; student_id: string; role: string }[] = []
 
     // Por UUID directo (búsqueda del wizard)
     if (perpetrator_student_id) {
-      involvedRows.push({ report_id: report!.id, student_id: perpetrator_student_id, role: 'agresor' })
+      // Solo se acepta si es un alumno activo de este mismo centro: el id llega del
+      // cliente y sin esta comprobación se podía vincular a un alumno de otro centro.
+      const { data: perpetrator } = await supabaseAdmin
+        .from('students').select('id')
+        .eq('id', perpetrator_student_id).eq('centro_id', centro.id).eq('active', true)
+        .maybeSingle()
+      if (perpetrator) {
+        involvedRows.push({ report_id: report!.id, student_id: perpetrator.id, role: 'agresor' })
+      }
     }
 
     // Por external_id (importación SIS)
@@ -167,6 +184,19 @@ Deno.serve(async (req: Request) => {
     return errorResponse('Error interno del servidor', 500)
   }
 })
+
+// El resultado anti-IA lo calcula verify-content y lo reenvía el cliente; aquí solo
+// se aceptan los campos y valores esperados.
+function sanitizeVerification(v: unknown): VerifyResult | null {
+  if (!v || typeof v !== 'object') return null
+  const r = v as Record<string, unknown>
+  if (!['auth', 'possible_ai', 'undetermined'].includes(String(r.status))) return null
+  return {
+    status:     r.status as VerifyResult['status'],
+    confidence: Math.min(1, Math.max(0, Number(r.confidence) || 0)),
+    provider:   String(r.provider ?? 'none').slice(0, 40),
+  }
+}
 
 // Triaje básico por keywords y categoría
 function classifyBasicSeverity(description: string, category: string): number {

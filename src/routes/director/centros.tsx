@@ -87,7 +87,7 @@ export default function DirectorCentros() {
       monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
 
       const { data: allReports } = await supabase
-        .from('reports')
+        .from('reports_director')
         .select('id, centro_id, severity_level, status, created_at, closed_at')
         .eq('tenant_id', dir.tenant_id)
         .gte('created_at', monthStart.toISOString())

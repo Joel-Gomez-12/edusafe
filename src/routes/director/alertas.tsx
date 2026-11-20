@@ -59,13 +59,13 @@ export default function DirectorAlertas() {
       const [{ data: slaReports }, { data: monthIds }] = await Promise.all([
         // SLA: últimos 30 días (cubre ventanas de 2h, 24h y 15 días)
         supabase
-          .from('reports')
+          .from('reports_director')
           .select('id, severity_level, status, created_at, closed_at')
           .eq('tenant_id', dir.tenant_id)
           .gte('created_at', thirtyAgo),
         // Reincidencia: solo mes actual → solo necesito los IDs
         supabase
-          .from('reports')
+          .from('reports_director')
           .select('id')
           .eq('tenant_id', dir.tenant_id)
           .gte('created_at', monthStart),
